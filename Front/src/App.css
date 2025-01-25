@@ -1,0 +1,494 @@
+/* General Container Styles */
+.container {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  height: 100%;
+  background: #6a847f;
+  color: black;
+  position: relative;
+}
+
+.container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url(./img/bg-logo.png);
+  background-size: cover;
+  opacity: 0.5;
+  z-index: 1;
+}
+.login-wrapper > *,
+.admin-wrapper > *,
+.container > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Section and Box Styles */
+.section,
+.kyiv-time-section,
+.navbar-section,
+.reports-section,
+.instructions-section {
+  background-color: #e0ebeb;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-section,
+.schedule-section {
+  grid-column: 1 / -1;
+  text-align: center;
+}
+.navbar-section {
+  grid-column: 2/-1;
+}
+
+.kyiv-time-section h2,
+.navbar-section h2,
+.reports-section h2,
+.instructions-section h2 {
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+.reports-section p,
+.instructions-section p {
+  font-size: 1rem;
+}
+
+/* Navbar Styles */
+.kyiv-time,
+.navbar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #e0ebeb;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  height: 3em;
+}
+
+.kyiv-time div,
+.navbar div {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* Schedule Container and Panel Styles */
+.schedule-container {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  grid-gap: 20px;
+}
+
+.middle-panel,
+.right-panel {
+  background-color: #f4f4f4;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.middle-panel h2 {
+  margin: 0;
+}
+
+/* Task List and Notes Styles */
+.task-list,
+.notes {
+  margin-top: 20px;
+}
+
+.task-item,
+.note-item {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #c1c1c1;
+  padding: 8px 0;
+}
+
+.task-item.previous-task {
+  border: none;
+}
+.task-item.current-task {
+  font-weight: bold;
+  background-color: #6a847f;
+  color: white;
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.notes {
+  height: 35em;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding: 10px;
+}
+
+.notes-create {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notes,
+.notes-create input,
+#notes-create-btn {
+  border: 2px solid gray;
+  border-radius: 5px;
+}
+
+/* Wrapper Styles for Reports and Instructions */
+.reports-wrapper,
+.instructions-wrapper {
+  text-align: center;
+}
+.reports-wrapper {
+  margin-top: 50px;
+}
+/* Search Input and Input Container Styles */
+.search-input-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 50px;
+  align-self: flex-start;
+  width: 100%;
+  max-width: 70%;
+}
+
+.search-input {
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 5px;
+  height: 2em;
+  width: 14.5em;
+}
+
+/* Instructions and Reports Container Styles */
+.instructions-container,
+.reports-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.instructions,
+.reports {
+  flex: 1;
+  max-width: 200px;
+  background-color: #6a847f;
+  padding: 10px;
+  border: 2px solid #6a847f;
+  border-radius: 5px;
+  height: 22em;
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  margin-right: 20px;
+}
+
+.instructions ul,
+.reports ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.instructions ul li,
+.reports ul li {
+  background-color: #ffffff;
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.instructions ul li:hover,
+.reports ul li:hover {
+  background-color: #b3cccc;
+}
+
+/* Instruction and Report Details Styles */
+.instructions-description,
+.reports-details {
+  flex: 2;
+  padding: 20px;
+  background-color: #f9f9f9;
+  min-height: 20em;
+  display: flex;
+  /* align-items: center; */
+  /* justify-content: center; */
+  border: 2px solid #6a847f;
+  border-radius: 20px;
+  width: 15em;
+  /* overflow-y: scroll; */
+  max-height: 20em;
+  text-align-last: left;
+}
+
+.instructions-description p,
+.reports-details p {
+  font-size: 16px;
+  text-align: center;
+}
+
+/* Stylish Toggle Buttons */
+.toggle-switch {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.toggle-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 30px;
+  margin: 0 10px;
+  cursor: pointer;
+  background-color: #e0ebeb;
+  color: #333;
+  transition: background-color 0.3s, color 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-button:hover {
+  background-color: #b3cccc;
+}
+
+.toggle-button.active {
+  background-color: #6a847f;
+  color: white;
+}
+.login-wrapper {
+  height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  vertical-align: middle;
+}
+.login-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url(./img/bg-logo.png);
+  background-size: cover;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+/* Styling for the login container */
+.login-container {
+  background-color: #fff;
+  padding: 40px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  margin: auto;
+}
+
+/* Headline for the login form */
+.login-container h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  color: #333;
+}
+
+/* Input field styles */
+.login-container input[type="text"],
+.login-container input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+/* Button styles */
+.login-container button {
+  width: 100%;
+  padding: 12px;
+  background-color: #6a847f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.login-container button:hover {
+  background-color: #6a847f;
+}
+
+/* Error message styles */
+.login-container p {
+  color: red;
+  font-size: 14px;
+}
+
+.admin-wrapper {
+  width: 100%;
+  height: 100vh;
+  background-color: #6a847f;
+}
+.admin-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url(./img/bg-logo.png);
+  background-size: cover;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+.admin-panel {
+  background-color: #e0ebeb;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  height: 700px;
+  margin: auto;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  font-size: 2rem;
+  text-align: center;
+  color: #333;
+}
+
+.admin-controls {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.toggle-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  background-color: #e0ebeb;
+  color: #333;
+  transition: background-color 0.3s, color 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-button.active {
+  background-color: #6a847f;
+  color: white;
+}
+.data-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 20px;
+}
+.data-list {
+  height: 500px;
+  overflow-y: scroll;
+  border: 2px solid #6a847f;
+  border-radius: 5px;
+  max-width: 800px;
+}
+.data-list h2 {
+  font-size: 1.5rem;
+  color: #333;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  display: flex;
+  justify-content: space-between;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.delete-button {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background-color: #ff1a1a;
+}
+
+.add-data {
+  background-color: #f4f4f4;
+  padding: 20px;
+  border: 2px solid #6a847f;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.add-data h3 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.input-field {
+  width: 17em;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+.description {
+  height: 17em;
+}
+
+.add-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #6a847f;
+  color: white;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-button:hover {
+  background-color: #536b63;
+}
