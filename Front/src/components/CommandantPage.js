@@ -8,12 +8,16 @@ import Report from "./Report";
 // import Instruction from './Instruction';
 import dailyOrderFile from '../dailyOrder.doc';
 import { saveAs } from 'file-saver';
+import DocumentForm from "./DocumentForm";
 
 
 function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertTriggered, setAlertTriggered, setCurrentEventIndex, setTimeLeft,
     setSharedDocument }) {
     const location = useLocation();
-
+    const typeOfDocument = {
+        DAILY_ORDER: 'Добовий наказ',
+        PERSONNEL_EXPENDITURE: "Розхід"
+    }
 
     // Calculate time left for the current event
     const calculateTimeLeft = (eventTime) => {
@@ -110,47 +114,7 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
             <div className="instructions-section">
                 <Instruction />
             </div> */}
-            <div class="accordion" id="documentAccordion">
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingOne">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                            Відправка документів
-                        </button>
-                    </h2>
-                    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#documentAccordion">
-                        <div class="accordion-body">
-                            <form class="p-4 border rounded shadow-lg">
-                                <legend class="mb-4 text-center">Відправити документ</legend>
-
-                                <div class="mb-3">
-                                    <label for="docType" class="form-label">Тип документа</label>
-                                    <select id="docType" class="form-select">
-                                        <option value="" disabled selected>Оберіть тип документа</option>
-                                        <option value="dailyOrder">Добовий наказ</option>
-                                        <option value="rozkhid">Розход</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="receiverRole" class="form-label">Отримувач</label>
-                                    <select id="receiverRole" class="form-select">
-                                        <option value="" disabled selected>Оберіть отримувача</option>
-                                        <option value="dutyOfficer">Черговий інституту</option>
-                                        <option value="ChiefOfStaff">Начальник штабу</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="fileUpload" class="form-label">Завантажити документ</label>
-                                    <input type="file" id="fileUpload" class="form-control"></input>
-                                </div>
-
-                                <button type="button" class="btn btn-primary w-100" onClick="shareDocument()">Надіслати документ</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <DocumentForm></DocumentForm>
 
 
 
