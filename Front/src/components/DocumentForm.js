@@ -29,15 +29,21 @@ function DocumentForm() {
             alert('Будь ласка, заповніть всі поля.');
             return;
         }
-        alert('shareDoc')
         try {
             // 1. Відправляємо файл (перший запит)
+            if (!file) {
+                alert('Будь ласка, завантажте файл');
+                return;
+            }
+            console.log(file); // Додайте це перед формуванням FormData
+
             const formData = new FormData();
             formData.append('document', file);
+            formData.append("typeOfDocument", selectedDocType);
 
-            const fileUploadResponse = await fetch('/api/documents/upload', {
+            const fileUploadResponse = await fetch('http://localhost:8080/api/documents/upload', {
                 method: 'POST',
-                body: formData,
+                body: formData
             });
 
             if (!fileUploadResponse.ok) {
@@ -57,7 +63,7 @@ function DocumentForm() {
                 sendTo: selectedRole,
             };
 
-            const metadataResponse = await fetch('/api/documents/save', {
+            const metadataResponse = await fetch('http://localhost:8080/api/documents/save', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
