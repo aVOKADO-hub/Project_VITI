@@ -1,5 +1,8 @@
+*{
+  margin: 0;
+}
 /* General Container Styles */
-.container {
+.wrapper {
   display: grid;
   grid-template-rows: auto 1fr;
   grid-template-columns: 1fr 1fr;
@@ -12,7 +15,7 @@
   position: relative;
 }
 
-.container::before {
+.wrapper::before {
   content: "";
   position: absolute;
   top: 0;
@@ -26,7 +29,7 @@
 }
 .login-wrapper > *,
 .admin-wrapper > *,
-.container > * {
+.wrapper > * {
   position: relative;
   z-index: 2;
 }
@@ -491,4 +494,11 @@ li {
 
 .add-button:hover {
   background-color: #536b63;
+}
+
+
+/* doc transfer form */
+
+form{
+  background-color: #fff;
 }
