@@ -24,19 +24,16 @@ public class DocumentService {
 
     public DocumentDto saveDocument(MultipartFile file) throws IOException {
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("Файл пуст. Пожалуйста, выберите документ.");
+            throw new IllegalArgumentException("Файл пустий. Будьласка, виберіть документ.");
         }
 
         String documentName = file.getOriginalFilename();
         String documentPath = UPLOAD_DIR + documentName;
 
-        // Создание директории, если её нет
         new File(UPLOAD_DIR).mkdirs();
 
-        // Сохранение файла на сервер
         file.transferTo(new File(documentPath));
 
-        // Создание сущности
         Document documentEntity = new Document(
                 documentName,
                 getTypeOfDocument(documentName),
@@ -50,7 +47,6 @@ public class DocumentService {
 
         documentEntity = documentRepository.save(documentEntity);
 
-        // Создание DTO
         DocumentDto documentDto = new DocumentDto();
         documentDto.setId(documentEntity.getId());
         documentDto.setTitle(documentEntity.getTitle());
@@ -62,7 +58,7 @@ public class DocumentService {
         documentDto.setCreateBy(documentEntity.getCreateBy());
         documentDto.setSendTo(documentEntity.getSendTo());
 
-        log.info("Документ успешно загружен: {}", documentDto);
+        log.info("Документ успішно завантажений: {}", documentDto);
 
         return documentDto;
     }
@@ -85,6 +81,6 @@ public class DocumentService {
         document.setSendTo(sendTo);
         document.setSendDate(new Date());
 
-        return documentRepository.save(document); // Сохраняем в БД
+        return documentRepository.save(document);
     }
 }
