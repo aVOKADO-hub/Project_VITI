@@ -1,45 +1,53 @@
 package dep22.mitit_duty_auto.entities;
 
-import dep22.mitit_duty_auto.entities.enums.TypeOfDockument;
+import dep22.mitit_duty_auto.entities.enums.TypeOfDocument;
+import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
 
+@Entity
+@Table(name = "documents")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Document {
-    @Setter
-    @Getter
-    private int id;
-    @Setter
-    @Getter
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(name = "title", nullable = false)
     private String title;
-    @Setter
-    @Getter
-    private TypeOfDockument typeOfDockument;
-    @Setter
-    @Getter
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type_of_document", nullable = false)
+    private TypeOfDocument typeOfDocument;
+
+    @Column(name = "path", nullable = false)
     private String path;
-    @Setter
-    @Getter
-    private boolean isRead;
-    @Setter
-    @Getter
+
+    @Column(name = "is_read", nullable = false)
+    private boolean isRead = false;
+
+    @Column(name = "send_date")
     private Date sendDate;
-    @Setter
-    @Getter
+
+    @Column(name = "read_date")
     private Date readDate;
-    @Setter
-    @Getter
+
+    @Column(name = "create_by", nullable = false)
     private String createBy;
-    @Setter
-    @Getter
+
+    @Column(name = "send_to", nullable = false)
     private String sendTo;
 
-    public Document(int id, String title, TypeOfDockument typeOfDockument, String path,
-                    boolean isRead, Date sendDate, Date readDate, String createBy, String sendTo) {
-        this.id = id;
+    public Document(String title, TypeOfDocument typeOfDocument, String path, boolean isRead,
+                    Date sendDate, Date readDate, String createBy, String sendTo) {
         this.title = title;
-        this.typeOfDockument = typeOfDockument;
+        this.typeOfDocument = typeOfDocument;
         this.path = path;
         this.isRead = isRead;
         this.sendDate = sendDate;
@@ -47,31 +55,4 @@ public class Document {
         this.createBy = createBy;
         this.sendTo = sendTo;
     }
-
-
-
-    @Override
-    public String toString() {
-        return "Document{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", typeOfDockument=" + typeOfDockument +
-                ", path='" + path + '\'' +
-                ", isRead=" + isRead +
-                ", sendDate=" + sendDate +
-                ", readDate=" + readDate +
-                ", createBy='" + createBy + '\'' +
-                ", sendTo='" + sendTo + '\'' +
-                '}';
-    }
 }
-
-//-id
-//-TypeOfDockument
-//-Path
-//-isRead
-//-SendDate
-//-ReadDate
-//-CreateBy
-//-SendTo
-
