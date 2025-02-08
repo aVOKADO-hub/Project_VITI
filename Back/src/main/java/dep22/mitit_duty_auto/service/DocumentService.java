@@ -11,6 +11,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Date;
 
 @Slf4j
@@ -22,31 +26,48 @@ public class DocumentService {
 
     private static final String UPLOAD_DIR = "uploads/";
 
-    public DocumentDto saveDocument(MultipartFile file) throws IOException {
+    public DocumentDto saveDocument(MultipartFile file, TypeOfDocument typeOfDocument) throws IOException {
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("Файл пустий. Будьласка, виберіть документ.");
+            throw new IllegalArgumentException("Файл пустий. Будь ласка, оберіть документ.");
         }
 
-        String documentName = file.getOriginalFilename();
-        String documentPath = UPLOAD_DIR + documentName;
+        // Очистка назви файлу
+        String originalFileName = file.getOriginalFilename();
+        String cleanFileName = originalFileName.replaceAll("[^a-zA-Zа-яА-ЯёЁїЇіІєЄґҐ0-9\\.\\-]", "_");
 
-        new File(UPLOAD_DIR).mkdirs();
 
-        file.transferTo(new File(documentPath));
+        // Генерація унікального імені
+        String uniqueFileName = System.currentTimeMillis() + "_" + cleanFileName;
 
+        // Створення директорії для типу документа
+        File uploadDir = new File(UPLOAD_DIR + "/" + typeOfDocument.name()); // Папка для типу документа
+        if (!uploadDir.exists() && !uploadDir.mkdirs()) {
+            throw new IOException("Не вдалося створити директорію для завантаження файлів: " + uploadDir.getAbsolutePath());
+        }
+
+        // Повний шлях для збереження файлу
+        String documentPath = uploadDir.getAbsolutePath() + "/" + uniqueFileName;
+
+        // Збереження файлу
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, Paths.get(documentPath), StandardCopyOption.REPLACE_EXISTING);
+        }
+
+        // Створення та збереження сутності документа
         Document documentEntity = new Document(
-                documentName,
-                getTypeOfDocument(documentName),
+                cleanFileName,
+                typeOfDocument,
                 documentPath,
                 false,
                 new Date(),
                 null,
-                "currentUser",
-                "receiverUser"
+                "currentUser",  // Замінити на реального користувача
+                "receiverUser"  // Замінити на реального одержувача
         );
 
         documentEntity = documentRepository.save(documentEntity);
 
+        // Підготовка DTO для відповіді
         DocumentDto documentDto = new DocumentDto();
         documentDto.setId(documentEntity.getId());
         documentDto.setTitle(documentEntity.getTitle());
@@ -58,10 +79,11 @@ public class DocumentService {
         documentDto.setCreateBy(documentEntity.getCreateBy());
         documentDto.setSendTo(documentEntity.getSendTo());
 
-        log.info("Документ успішно завантажений: {}", documentDto);
+        log.info("Документ успішно збережено: {}", documentDto);
 
         return documentDto;
     }
+
 
     private TypeOfDocument getTypeOfDocument(String fileName) {
         if (fileName.toLowerCase().endsWith(".docx") || fileName.toLowerCase().endsWith(".doc")) {
