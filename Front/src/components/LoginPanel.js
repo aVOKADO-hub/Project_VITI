@@ -10,6 +10,7 @@ const LoginPanel = () => {
         e.preventDefault();
 
         try {
+
             // Отправка запроса на сервер
             const response = await fetch("http://localhost:8080/auth/login", {
                 method: "POST",
@@ -18,7 +19,7 @@ const LoginPanel = () => {
                 },
                 body: JSON.stringify({ login, password }),
             });
-            
+
 
             if (!response.ok) {
                 throw new Error("Ошибка авторизации");
@@ -26,7 +27,7 @@ const LoginPanel = () => {
 
             // Получение ответа
             const data = await response.json(); // Предполагаем, что сервер возвращает объект { role: "USER"/"ADMIN" }
-
+            alert(data.token)
             // Сохранение токена, если есть (опционально)
             if (data.token) {
                 localStorage.setItem("authToken", data.token);
@@ -34,15 +35,18 @@ const LoginPanel = () => {
 
             // Проверка роли пользователя и перенаправление
             alert(data.role)
-            if (data.role === "DUTY_OFFICER_OF_MILITARY_UNIT") {
-                navigate("/dutyOfficer");
-            } else if (data.role === "CHIEF_OF_TROOPS_SERVICE") {
-                navigate("/сommandantOfficer");
-            } 
-             else if (data.role === "CHIEF_OF_STAFF") {
-                navigate("/staffOfficer");
-            }else {
-                alert("Неизвестная роль");
+            switch (data.role) {
+                case "DUTY_OFFICER_OF_MILITARY_UNIT":
+                    navigate("/dutyOfficer");
+                    break;
+                case "CHIEF_OF_TROOPS_SERVICE":
+                    navigate("/сommandantOfficer");
+                    break;
+                case "CHIEF_OF_STAFF":
+                    navigate("/staffOfficer");
+                    break;
+                default:
+                    alert("Unknown role");
             }
         } catch (err) {
             alert(err.message || "Произошла ошибка");
@@ -60,7 +64,7 @@ const LoginPanel = () => {
                         placeholder="Login"
                         value={login}
                         onChange={(e) => setLogin(e.target.value)}
-                        
+
                     />
                     <input
                         type="password"

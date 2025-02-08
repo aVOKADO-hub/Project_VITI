@@ -3,6 +3,7 @@ package dep22.mitit_duty_auto.controllers;
 import dep22.mitit_duty_auto.dto.UserInfoDto;
 import dep22.mitit_duty_auto.dto.UserRegistrationDto;
 import dep22.mitit_duty_auto.entities.security.User;
+import dep22.mitit_duty_auto.service.JwtService;
 import dep22.mitit_duty_auto.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -29,6 +31,8 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
+    private final JwtService jwtService;
+
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserRegistrationDto registrationDto) {
@@ -65,14 +69,19 @@ public class AuthController {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // ***ДОБАВЬТЕ ЭТО***
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            System.out.println("Аутентификация после логина: " + auth); // Выводим информацию об аутентификации
+            User user = userService.findByName(loginRequest.login())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-            User user = userService.findByName(loginRequest.login()).orElseThrow();
-            return ResponseEntity.ok(Map.of("role", user.getRole().name()));
+            String jwt = jwtService.generateToken(authentication, user);
+
+            return ResponseEntity.ok(Map.of(
+                    "token", jwt,
+                    "role", user.getRole().name()
+            ));
+
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Authentication failed"));
         }
     }
 

@@ -2,7 +2,11 @@ package dep22.mitit_duty_auto.controllers;
 
 import dep22.mitit_duty_auto.models.report.ListReport;
 import dep22.mitit_duty_auto.service.ReportService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,6 +22,7 @@ import java.util.Collection;
 public class ReportController {
 
     private final ReportService reportService;
+    private static final Logger logger = LoggerFactory.getLogger(ReportController.class);
 
     @Autowired
     public ReportController(ReportService reportService) {
@@ -25,20 +30,19 @@ public class ReportController {
     }
 
     @GetMapping
-    public List<ListReport> getAllReports() {
+    public ResponseEntity<List<ListReport>> getAllReports() {
+        logger.info("Received request to get all reports");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        logger.info("User: {}, Authorities: {}",
+                authentication.getName(),
+                authentication.getAuthorities());
 
-        if (authentication != null && isAuthenticated(authentication)) {
-            String username = authentication.getName();
-            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-
-            System.out.println("User " + username + " is accessing reports.");
-            System.out.println("User authorities: " + authorities);
-
-            return reportService.getAllReports();
-        } else {
-            System.out.println("No authentication found or insufficient rights.");
-            return Collections.emptyList();
+        try {
+            List<ListReport> reports = reportService.getAllReports();
+            return ResponseEntity.ok(reports);
+        } catch (Exception e) {
+            logger.error("Error getting reports", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

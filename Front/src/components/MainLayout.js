@@ -64,9 +64,9 @@ function MainLayout({ events,
     }, [events, currentEventIndex, alertTriggered, location.pathname, setTimeLeft]);
 
     // Другий useEffect для обробки отриманого документа
-    useEffect(() => {
-        console.log("Зміна sharedDocument:", sharedDocument);
-    }, [sharedDocument]);
+    // useEffect(() => {
+    //     console.log("Зміна sharedDocument:", sharedDocument);
+    // }, [sharedDocument]);
 
     return (
         <div className="wrapper">
