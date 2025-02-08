@@ -14,33 +14,26 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserDetailsServiceImpl userDetailsService; // Inject UserDetailsService
-
-
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        return userDetailsService;
-//    }
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF (for dev only! Enable in production)
+                .cors(withDefaults()) // Enable CORS (configure as needed)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll() // Разрешаем доступ к /auth/** без аутентификации
+                        .requestMatchers("/api/**").authenticated() // Защищаем /api/**
                         .anyRequest().authenticated()
                 )
-                .authenticationManager(authenticationManager)
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .permitAll()
-                        .defaultSuccessUrl("/home")
-                );
+                .authenticationManager(authenticationManager);
 
         return http.build();
     }
@@ -62,5 +55,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }
