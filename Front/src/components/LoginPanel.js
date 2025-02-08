@@ -11,13 +11,14 @@ const LoginPanel = () => {
 
         try {
             // Отправка запроса на сервер
-            const response = await fetch("/auth/login", {
+            const response = await fetch("http://localhost:8080/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ login, password }),
             });
+            
 
             if (!response.ok) {
                 throw new Error("Ошибка авторизации");
@@ -32,11 +33,15 @@ const LoginPanel = () => {
             // }
 
             // Проверка роли пользователя и перенаправление
-            if (data.role === "ADMIN") {
-                navigate("/adminPanel");
-            } else if (data.role === "USER") {
-                navigate("/userDashboard");
-            } else {
+            alert(data.role)
+            if (data.role === "DUTY_OFFICER_OF_MILITARY_UNIT") {
+                navigate("/dutyOfficer");
+            } else if (data.role === "CHIEF_OF_TROOPS_SERVICE") {
+                navigate("/сommandantOfficer");
+            } 
+             else if (data.role === "CHIEF_OF_STAFF") {
+                navigate("/staffOfficer");
+            }else {
                 alert("Неизвестная роль");
             }
         } catch (err) {

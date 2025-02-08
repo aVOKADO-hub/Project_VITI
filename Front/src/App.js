@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LoginAdminPanel from './components/LoginAdminPanel'
+import LoginPanel from './components/LoginPanel'
 import AdminPanel from './components/AdminPanel';
 import './App.css';
 import { useRef, useState, useEffect } from "react";
@@ -81,7 +81,7 @@ function App() {
             />
           }
         />
-        <Route path="/admin" element={<LoginAdminPanel />} />
+        <Route path="/admin" element={<LoginPanel />} />
         <Route path="/adminPanel" element={<AdminPanel />} />
       </Routes>
     </Router>
