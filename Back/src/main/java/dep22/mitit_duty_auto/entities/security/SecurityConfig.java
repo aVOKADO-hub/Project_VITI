@@ -13,12 +13,20 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.config.http.SessionCreationPolicy;
+
+
+import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
 @RequiredArgsConstructor
+
 public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
@@ -26,17 +34,40 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF (for dev only! Enable in production)
-                .cors(withDefaults()) // Enable CORS (configure as needed)
+                .csrf(csrf -> csrf.disable())
+                .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll() // Разрешаем доступ к /auth/** без аутентификации
-                        .requestMatchers("/api/**").authenticated() // Защищаем /api/**
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/reports").hasRole("DUTY_OFFICER_OF_MILITARY_UNIT")
+                        .requestMatchers("/api/instructions").hasRole("DUTY_OFFICER_OF_MILITARY_UNIT")
+                        .requestMatchers("/api/documents").hasRole("DUTY_OFFICER_OF_MILITARY_UNIT")
+                        .requestMatchers("/api/events").hasRole("DUTY_OFFICER_OF_MILITARY_UNIT")
+                        .requestMatchers("/api/signals").hasRole("DUTY_OFFICER_OF_MILITARY_UNIT")
+                        .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )
-                .authenticationManager(authenticationManager);
+                .authenticationManager(authenticationManager)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Это нормально
+                );
 
         return http.build();
     }
+
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Replace with your frontend URL(s)
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE")); // Or "*" for all methods
+        configuration.setAllowedHeaders(List.of("*")); // Or specify allowed headers
+        configuration.setAllowCredentials(true); // Important if you're using cookies or Authorization header
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // Apply to all endpoints
+        return source;
+    }
+
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -55,4 +86,6 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+
 }
