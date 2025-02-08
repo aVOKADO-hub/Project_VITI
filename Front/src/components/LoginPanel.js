@@ -27,10 +27,10 @@ const LoginPanel = () => {
             // Получение ответа
             const data = await response.json(); // Предполагаем, что сервер возвращает объект { role: "USER"/"ADMIN" }
 
-            // // Сохранение токена, если есть (опционально)
-            // if (data.token) {
-            //     localStorage.setItem("authToken", data.token);
-            // }
+            // Сохранение токена, если есть (опционально)
+            if (data.token) {
+                localStorage.setItem("authToken", data.token);
+            }
 
             // Проверка роли пользователя и перенаправление
             alert(data.role)
@@ -60,6 +60,7 @@ const LoginPanel = () => {
                         placeholder="Login"
                         value={login}
                         onChange={(e) => setLogin(e.target.value)}
+                        
                     />
                     <input
                         type="password"
@@ -67,6 +68,7 @@ const LoginPanel = () => {
                         placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        autocomplete="current-password"
                     />
                     <button type="submit">Login</button>
                 </form>

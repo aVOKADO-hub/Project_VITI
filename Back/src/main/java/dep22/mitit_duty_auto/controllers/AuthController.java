@@ -4,7 +4,9 @@ import dep22.mitit_duty_auto.dto.UserInfoDto;
 import dep22.mitit_duty_auto.dto.UserRegistrationDto;
 import dep22.mitit_duty_auto.entities.security.User;
 import dep22.mitit_duty_auto.service.UserService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,46 +35,47 @@ public class AuthController {
         return ResponseEntity.ok(userService.register(registrationDto));
     }
 
-     @GetMapping("/me")
-     public ResponseEntity<?> getMe(Principal principal) {
-         String username = principal.getName();
-         User user = userService.findByName(username).orElseThrow();
-         return ResponseEntity.ok(new UserInfoDto(user));
-     }
+    @GetMapping("/me")
+    public ResponseEntity<?> getMe(Principal principal) {
+        if (principal != null) { // Check if principal is not null
+            String username = principal.getName();
+            User user = userService.findByName(username).orElseThrow();
+            return ResponseEntity.ok(new UserInfoDto(user));
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Or appropriate response
+        }
+    }
 
-     @PostMapping("/logout")
-     public ResponseEntity<?> logout(HttpServletRequest request) {
-         SecurityContextHolder.clearContext();
-         HttpSession session = request.getSession(false);
-         if (session != null) {
-             session.invalidate();
-         }
-         return ResponseEntity.ok().build();
-     }
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        SecurityContextHolder.clearContext();
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getLogin(), loginRequest.getPassword())
+                    new UsernamePasswordAuthenticationToken(loginRequest.login(), loginRequest.password())
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            User user = userService.findByName(loginRequest.getLogin()).orElseThrow();
-            return ResponseEntity.ok(Map.of("role", user.getRole().name())); // Возвращаем роль пользователя
+            // ***ДОБАВЬТЕ ЭТО***
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            System.out.println("Аутентификация после логина: " + auth); // Выводим информацию об аутентификации
+
+            User user = userService.findByName(loginRequest.login()).orElseThrow();
+            return ResponseEntity.ok(Map.of("role", user.getRole().name()));
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Возвращаем 401 Unauthorized
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
     record LoginRequest(String login, String password) {
-        public String getLogin() {
-            return login;
-        }
-
-        public String getPassword() {
-            return password;
-        }
     }
 }
