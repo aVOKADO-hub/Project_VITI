@@ -30,19 +30,21 @@ public class ReportController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ListReport>> getAllReports() {
-        logger.info("Received request to get all reports");
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        logger.info("User: {}, Authorities: {}",
-                authentication.getName(),
-                authentication.getAuthorities());
 
-        try {
-            List<ListReport> reports = reportService.getAllReports();
-            return ResponseEntity.ok(reports);
-        } catch (Exception e) {
-            logger.error("Error getting reports", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    public List<ListReport> getAllReports() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && isAuthenticated(authentication)) {
+            String username = authentication.getName();
+            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+
+            System.out.println("User " + username + " is accessing reports.");
+            System.out.println("User authorities: " + authorities);
+
+            return reportService.getAllReports();
+        } else {
+            System.out.println("No authentication found or insufficient rights.");
+            return Collections.emptyList();
         }
     }
 

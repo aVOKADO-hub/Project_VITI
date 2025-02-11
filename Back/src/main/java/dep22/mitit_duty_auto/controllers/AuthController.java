@@ -69,19 +69,14 @@ public class AuthController {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            User user = userService.findByName(loginRequest.login())
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            // ***ДОБАВЬТЕ ЭТО***
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            System.out.println("Аутентификация после логина: " + auth); // Выводим информацию об аутентификации
 
-            String jwt = jwtService.generateToken(authentication, user);
-
-            return ResponseEntity.ok(Map.of(
-                    "token", jwt,
-                    "role", user.getRole().name()
-            ));
-
+            User user = userService.findByName(loginRequest.login()).orElseThrow();
+            return ResponseEntity.ok(Map.of("role", user.getRole().name()));
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Authentication failed"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
