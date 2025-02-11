@@ -2,6 +2,7 @@ package dep22.mitit_duty_auto.controllers;
 
 import dep22.mitit_duty_auto.models.report.ListReport;
 import dep22.mitit_duty_auto.service.ReportService;
+import jakarta.servlet.http.HttpServletRequest; // Импортируем HttpServletRequest
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Collection;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+//@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/reports")
 public class ReportController {
 
@@ -25,8 +26,13 @@ public class ReportController {
     }
 
     @GetMapping
-    public List<ListReport> getAllReports() {
+    public List<ListReport> getAllReports(HttpServletRequest request) {
+        String jsessionid = request.getSession().getId();
+        System.out.println("JSESSIONID in /api/reports: " + jsessionid);
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        System.out.println("Authentication in /api/reports: " + authentication);
 
         if (authentication != null && isAuthenticated(authentication)) {
             String username = authentication.getName();
@@ -43,18 +49,28 @@ public class ReportController {
     }
 
     @GetMapping("/{id}")
-    public ListReport getReportById(@PathVariable int id) {
+    public ListReport getReportById(@PathVariable int id, HttpServletRequest request) {
+        String jsessionid = request.getSession().getId();
+        System.out.println("JSESSIONID in /api/reports/{id}: " + jsessionid);
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Authentication in /api/reports/{id}: " + authentication);
+
         if (authentication != null && isAuthenticated(authentication)) {
             return reportService.getReportById(id);
         } else {
-            return null; // Or throw exception or return appropriate response
+            return null;
         }
     }
 
     @PostMapping
-    public ListReport addReport(@RequestBody ListReport report) {
+    public ListReport addReport(@RequestBody ListReport report, HttpServletRequest request) {
+        String jsessionid = request.getSession().getId();
+        System.out.println("JSESSIONID in /api/reports (POST): " + jsessionid);
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Authentication in /api/reports (POST): " + authentication);
+
         if (authentication != null && isAuthenticated(authentication)) {
             return reportService.saveReport(report);
         } else {
@@ -63,8 +79,13 @@ public class ReportController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteReportById(@PathVariable int id) {
+    public void deleteReportById(@PathVariable int id, HttpServletRequest request) {
+        String jsessionid = request.getSession().getId();
+        System.out.println("JSESSIONID in /api/reports/{id} (DELETE): " + jsessionid);
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Authentication in /api/reports/{id} (DELETE): " + authentication);
+
         if (authentication != null && isAuthenticated(authentication)) {
             reportService.deleteReportById(id);
         } else {
@@ -72,8 +93,17 @@ public class ReportController {
         }
     }
 
-    private boolean isAuthenticated(Authentication authentication) {
-        return authentication.isAuthenticated() && authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("DUTY_OFFICER_OF_MILITARY_UNIT"));
+//    private boolean isAuthenticated(Authentication authentication) {
+//        return authentication.isAuthenticated() && authentication.getAuthorities().stream()
+//                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("DUTY_OFFICER_OF_MILITARY_UNIT"));
+//    }
+private boolean isAuthenticated(Authentication authentication) {
+    return authentication != null && authentication.isAuthenticated();
+}
+
+    @GetMapping("/test")
+    public String testEndpoint() {
+        System.out.println("Test endpoint called!");
+        return "Test";
     }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Collection;
 
 @RestController
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3000/admin"})
+//@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3000/admin"})
 @RequestMapping("/api/signals")
 public class SignalController {
 

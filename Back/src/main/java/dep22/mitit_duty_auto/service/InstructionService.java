@@ -30,10 +30,10 @@ public class InstructionService  {
     }
 
     public Instruction deleteInstruction(int id) {
-        Optional<Instruction> instruction = instructionRepository.findById(id); // Find the entity first
+        Optional<Instruction> instruction = instructionRepository.findById(id);
         if (instruction.isPresent()) {
-            instructionRepository.deleteById(id);  // Delete the entity
-            return instruction.get();  // Return the entity after deletion
+            instructionRepository.deleteById(id);
+            return instruction.get();
         } else {
             throw new EntityNotFoundException("Instruction with ID " + id + " not found.");
         }
@@ -41,7 +41,7 @@ public class InstructionService  {
 
 
     public Instruction saveInstruction(Instruction instruction) {
-        return instructionRepository.save(instruction); // JPA will handle inserting the new entity
+        return instructionRepository.save(instruction);
     }
 
 }

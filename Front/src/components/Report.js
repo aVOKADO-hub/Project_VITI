@@ -4,19 +4,20 @@ const Report = ({ reportRef }) => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [reportDetails, setReportDetails] = useState(null);
   const [reports, setReports] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(""); // State for search input
-  const [error, setError] = useState(null); // Add error handling
+  const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState(null);
 
-  // Fetch all reports when the component is mounted
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/reports");
+        const response = await fetch("http://localhost:8080/api/reports", {
+          credentials: 'include' 
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch reports");
         }
         const data = await response.json();
-        setReports(data); // Assuming your API returns an array of reports
+        setReports(data);
       } catch (error) {
         console.error("Error fetching reports:", error);
         setError("Unable to fetch reports. Please try again later.");
@@ -30,19 +31,20 @@ const Report = ({ reportRef }) => {
     setSelectedReport(reportId);
 
     try {
-      const response = await fetch(`http://localhost:8080/api/reports/${reportId}`);
+      const response = await fetch(`http://localhost:8080/api/reports/${reportId}`, {
+        credentials: 'include' 
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch report details");
       }
       const data = await response.json();
-      setReportDetails(data.description); // Assuming report has a 'description' field
+      setReportDetails(data.description);
     } catch (error) {
       console.error("Error fetching report details:", error);
       setError("Unable to fetch report details. Please try again later.");
     }
   };
 
-// Filter reports based on search term
   const filteredReports = reports.filter((report) =>
     report.reportName.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -70,7 +72,7 @@ const Report = ({ reportRef }) => {
     <li
       key={report.id}
       onClick={() => handleReportClick(report.id)}
-      ref={report.id === 2 ? reportRef : null} // Using reportRef only for report with id 2
+      ref={report.id === 2 ? reportRef : null} 
       className={selectedReport === report.id ? "selected" : ""}
     >
       {report.reportName} - {report.toWhom}
