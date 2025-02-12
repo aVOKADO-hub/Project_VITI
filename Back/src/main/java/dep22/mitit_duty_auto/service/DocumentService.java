@@ -3,6 +3,7 @@ package dep22.mitit_duty_auto.service;
 import dep22.mitit_duty_auto.dto.DocumentDto;
 import dep22.mitit_duty_auto.entities.Document;
 import dep22.mitit_duty_auto.entities.enums.TypeOfDocument;
+import dep22.mitit_duty_auto.entities.security.Roles;
 import dep22.mitit_duty_auto.repos.DocumentRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -26,7 +30,7 @@ public class DocumentService {
 
     private static final String UPLOAD_DIR = "uploads/";
 
-    public DocumentDto saveDocument(MultipartFile file, TypeOfDocument typeOfDocument) throws IOException {
+    public DocumentDto saveDocument(MultipartFile file, TypeOfDocument typeOfDocument, String createBy, String sendTo) throws IOException {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("Файл пустий. Будь ласка, оберіть документ.");
         }
@@ -53,7 +57,6 @@ public class DocumentService {
             Files.copy(inputStream, Paths.get(documentPath), StandardCopyOption.REPLACE_EXISTING);
         }
 
-        // Створення та збереження сутності документа
         Document documentEntity = new Document(
                 cleanFileName,
                 typeOfDocument,
@@ -61,8 +64,8 @@ public class DocumentService {
                 false,
                 new Date(),
                 null,
-                "currentUser",  // Замінити на реального користувача
-                "receiverUser"  // Замінити на реального одержувача
+                createBy,  // Передаем Roles напрямую
+                sendTo   // Передаем Roles напрямую
         );
 
         documentEntity = documentRepository.save(documentEntity);
@@ -104,5 +107,44 @@ public class DocumentService {
         document.setSendDate(new Date());
 
         return documentRepository.save(document);
+    }
+
+    public List<DocumentDto> getAllDocuments(Roles sendTo) {
+//
+//        try {
+//            Roles sendToRole = Roles.valueOf(sendTo); // Преобразуем String в Roles
+//            return documentService.getAllDocuments(sendToRole); // Передаем Roles в сервис
+//        } catch (IllegalArgumentException e) {
+//            // Обрабатываем ошибку, если sendTo не является допустимым значением Roles
+//            log.error("Invalid sendTo value: {}", sendTo);
+//            return Collections.emptyList(); // Или возвращаем соответствующий HTTP ответ с ошибкой
+//        }
+        List<Document> documents = documentRepository.findBySendTo(sendTo);
+
+        // Сортировка: сначала isRead = false, потом остальные
+        List<Document> sortedDocuments = documents.stream()
+                .sorted(Comparator.comparing(Document::isRead))
+                .collect(Collectors.toList());
+
+
+        List<DocumentDto> documentDtos = sortedDocuments.stream()
+                .map(this::convertToDto) // Assuming you have this method
+                .collect(Collectors.toList());
+
+        return documentDtos;
+    }
+
+    private DocumentDto convertToDto(Document document) {
+        DocumentDto dto = new DocumentDto();
+        dto.setId(document.getId());
+        dto.setTitle(document.getTitle());
+        dto.setTypeOfDocument(document.getTypeOfDocument());
+        dto.setPath(document.getPath());
+        dto.setRead(document.isRead());
+        dto.setSendDate(document.getSendDate());
+        dto.setReadDate(document.getReadDate());
+        dto.setCreateBy(document.getCreateBy());
+        dto.setSendTo(document.getSendTo());
+        return dto;
     }
 }

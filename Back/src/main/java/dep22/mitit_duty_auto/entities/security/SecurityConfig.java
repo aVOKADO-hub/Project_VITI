@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/reports/test").permitAll()
                         .requestMatchers("/api/reports").hasAuthority("ROLE_DUTY_OFFICER_OF_MILITARY_UNIT")
                         .requestMatchers("/api/upload").permitAll()
+                        .requestMatchers("/api/sendTo").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationManager(authenticationManager)

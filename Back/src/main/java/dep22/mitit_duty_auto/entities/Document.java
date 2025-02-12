@@ -1,6 +1,7 @@
 package dep22.mitit_duty_auto.entities;
 
 import dep22.mitit_duty_auto.entities.enums.TypeOfDocument;
+import dep22.mitit_duty_auto.entities.security.Roles;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,10 +39,10 @@ public class Document {
     @Column(name = "read_date")
     private Date readDate;
 
-    @Column(name = "create_by", nullable = false)
+    @Column(name = "create_by") // Тип String
     private String createBy;
 
-    @Column(name = "send_to", nullable = false)
+    @Column(name = "send_to") // Тип String
     private String sendTo;
 
     public Document(String title, TypeOfDocument typeOfDocument, String path, boolean isRead,

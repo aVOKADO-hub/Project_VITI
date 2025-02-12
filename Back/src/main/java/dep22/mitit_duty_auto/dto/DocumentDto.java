@@ -1,19 +1,21 @@
 package dep22.mitit_duty_auto.dto;
 
 import dep22.mitit_duty_auto.entities.enums.TypeOfDocument;
+import dep22.mitit_duty_auto.entities.security.Roles;
+
 import java.util.Date;
 
 public class DocumentDto {
 
-        private Integer id;
-        private String title;
-        private TypeOfDocument typeOfDocument;
-        private String path;
-        private boolean isRead;
-        private Date sendDate;
-        private Date readDate;
-        private String createBy;
-        private String sendTo;
+    private Integer id;
+    private String title;
+    private TypeOfDocument typeOfDocument;
+    private String path;
+    private boolean isRead;
+    private Date sendDate;
+    private Date readDate;
+    private String createBy; // Тип String
+    private String sendTo;     // Тип String
 
 
     public Integer getId() {
