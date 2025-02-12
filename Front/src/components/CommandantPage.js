@@ -5,15 +5,13 @@ import KyivTime from './KyivTime';
 import Navbar from "./Navbar";
 import Schedule from './Schedule';
 import Report from "./Report";
-// import Instruction from './Instruction';
-import dailyOrderFile from '../dailyOrder.doc';
-import { saveAs } from 'file-saver';
 import DocumentForm from "./DocumentForm";
 
 
 function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertTriggered, setAlertTriggered, setCurrentEventIndex, setTimeLeft,
     setSharedDocument }) {
     const location = useLocation();
+    const token = localStorage.getItem("authToken")
     const typeOfDocument = {
         DAILY_ORDER: 'Добовий наказ',
         PERSONNEL_EXPENDITURE: "Розхід"

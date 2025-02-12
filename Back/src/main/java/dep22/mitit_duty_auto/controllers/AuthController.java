@@ -2,13 +2,11 @@ package dep22.mitit_duty_auto.controllers;
 
 import dep22.mitit_duty_auto.dto.UserInfoDto;
 import dep22.mitit_duty_auto.dto.UserRegistrationDto;
+import dep22.mitit_duty_auto.entities.security.JwtUtil;
 import dep22.mitit_duty_auto.entities.security.User;
 import dep22.mitit_duty_auto.service.JwtService;
 import dep22.mitit_duty_auto.service.UserService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,18 +16,21 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
+    private final JwtUtil jwtUtil;
     private final UserService userService;
     private final JwtService jwtService;
 
@@ -40,23 +41,22 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getMe(Principal principal) {
-        if (principal != null) { // Check if principal is not null
-            String username = principal.getName();
+    public ResponseEntity<?> getMe() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication!= null && authentication.isAuthenticated()) {
+            String username = authentication.getName();
             User user = userService.findByName(username).orElseThrow();
             return ResponseEntity.ok(new UserInfoDto(user));
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // Or appropriate response
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
         SecurityContextHolder.clearContext();
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
+        request.getSession(false).invalidate();
         return ResponseEntity.ok().build();
     }
 
@@ -69,12 +69,16 @@ public class AuthController {
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // ***ДОБАВЬТЕ ЭТО***
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            System.out.println("Аутентификация после логина: " + auth); // Выводим информацию об аутентификации
+            UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.login());
 
             User user = userService.findByName(loginRequest.login()).orElseThrow();
-            return ResponseEntity.ok(Map.of("role", user.getRole().name()));
+
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("role", "ROLE_" + user.getRole().name());
+
+            String token = jwtUtil.generateToken(claims, userDetails.getUsername());
+
+            return ResponseEntity.ok(new AuthenticationResponse(token, user.getRole().name()));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -82,4 +86,9 @@ public class AuthController {
 
     record LoginRequest(String login, String password) {
     }
+
+    record AuthenticationResponse(String token, String role) {
+    }
+
+
 }

@@ -1,27 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, loading } from "react";
 import useAuthenticatedRequest from "./AuthenticatedRequest/useAuthenticatedRequest";
+
 
 const Report = ({ reportRef }) => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [reportDetails, setReportDetails] = useState(null);
+  const [reports, setReports] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState(null);
+  const token = localStorage.getItem('authToken')
 
-  // Используем кастомный хук для получения отчетов
-  const { data: reports = [], error, loading } = useAuthenticatedRequest('http://localhost:8080/api/reports');
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/reports", {
+          credentials: 'include',
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          }
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch reports");
+        }
+        const data = await response.json();
+        setReports(data);
+      } catch (error) {
+        console.error("Error fetching reports:", error);
+        setError("Unable to fetch reports. Please try again later.");
+      }
+    };
+
+    fetchReports();
+  }, []);
 
   const handleReportClick = async (reportId) => {
     setSelectedReport(reportId);
 
     try {
-      const token = localStorage.getItem('authToken');
       const response = await fetch(`http://localhost:8080/api/reports/${reportId}`, {
-        method: 'GET',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Authorization": `Bearer ${token}`,
         }
       });
-
       if (!response.ok) {
         throw new Error("Failed to fetch report details");
       }
@@ -34,8 +55,7 @@ const Report = ({ reportRef }) => {
     }
   };
 
-  // Фильтрация отчетов с проверкой на существование reports
-  const filteredReports = reports?.filter((report) =>
+  const filteredReports = reports.filter((report) =>
     report.reportName.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
@@ -59,24 +79,21 @@ const Report = ({ reportRef }) => {
       <div className="reports-container">
         <div className="reports">
           {error ? (
-            <p className="error-message">Помилка завантаження доповідей: {error}</p>
+            <p className="error-message">{error}</p>
           ) : (
-            filteredReports.length > 0 ? (
-              <ul>
-                {filteredReports.map((report) => (
-                  <li
-                    key={report.id}
-                    onClick={() => handleReportClick(report.id)}
-                    ref={report.id === 2 ? reportRef : null}
-                    className={selectedReport === report.id ? "selected" : ""}
-                  >
-                    {report.reportName} - {report.toWhom}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Доповіді не знайдено</p>
-            )
+            <ul>
+              {filteredReports.map((report) => (
+                <li
+                  key={report.id}
+                  onClick={() => handleReportClick(report.id)}
+                  ref={report.id === 2 ? reportRef : null}
+                  className={selectedReport === report.id ? "selected" : ""}
+                >
+                  {report.reportName} - {report.toWhom}
+                </li>
+              ))}
+            </ul>
+
           )}
         </div>
 

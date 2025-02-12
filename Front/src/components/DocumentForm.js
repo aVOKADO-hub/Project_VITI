@@ -6,6 +6,7 @@ function DocumentForm() {
     const [documentTypes, setDocumentTypes] = useState([]);
     const [selectedRole, setSelectedRole] = useState('');
     const [selectedDocType, setSelectedDocType] = useState('');
+    const token = localStorage.getItem("authToken")
 
     // Завантажуємо ролі та типи документів (можна отримати із бекенду або через константи)
     useEffect(() => {
@@ -43,6 +44,9 @@ function DocumentForm() {
 
             const fileUploadResponse = await fetch('http://localhost:8080/api/documents/upload', {
                 method: 'POST',
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
                 body: formData
             });
 
@@ -67,6 +71,7 @@ function DocumentForm() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    "Authorization": `Bearer ${token}`,
                 },
                 body: JSON.stringify(metadata),
             });

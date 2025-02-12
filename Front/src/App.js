@@ -14,12 +14,17 @@ function App() {
   const [timeLeft, setTimeLeft] = useState({});
   const [alertTriggered, setAlertTriggered] = useState(false);
   const [sharedDocument, setSharedDocument] = useState(null);
+  const token = localStorage.getItem('authToken')
 
   // Fetch events from the API
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/events");
+        const response = await fetch("http://localhost:8080/api/events", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          }
+        });
         const data = await response.json();
         setEvents(data);
       } catch (error) {

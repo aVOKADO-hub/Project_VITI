@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Collection;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+//@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/events")
 public class EventController {
 
@@ -85,7 +85,6 @@ public class EventController {
     }
 
     private boolean isAuthenticated(Authentication authentication) {
-        return authentication.isAuthenticated() && authentication.getAuthorities().stream()
-                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("DUTY_OFFICER_OF_MILITARY_UNIT"));
+        return authentication != null && authentication.isAuthenticated();
     }
 }

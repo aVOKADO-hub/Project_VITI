@@ -1,6 +1,6 @@
 package dep22.mitit_duty_auto.entities.security;
 
-import dep22.mitit_duty_auto.service.UserDetailsServiceImpl; // Импортируем UserDetailsService
+import dep22.mitit_duty_auto.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,28 +9,27 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.security.config.http.SessionCreationPolicy;
-
 
 import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
+
 @Configuration
 @EnableWebSecurity(debug = true)
 @RequiredArgsConstructor
-
 public class SecurityConfig {
-
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final JwtRequestFilter jwtRequestFilter; // <- Добавляем JWT фильтр
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
@@ -39,18 +38,17 @@ public class SecurityConfig {
                 .cors(withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/api/reports").hasRole("DUTY_OFFICER_OF_MILITARY_UNIT")
-                        .requestMatchers("/api/instructions").hasRole("DUTY_OFFICER_OF_MILITARY_UNIT")
-                        .requestMatchers("/api/documents").hasRole("DUTY_OFFICER_OF_MILITARY_UNIT")
-                        .requestMatchers("/api/events").hasRole("DUTY_OFFICER_OF_MILITARY_UNIT")
-                        .requestMatchers("/api/signals").hasRole("DUTY_OFFICER_OF_MILITARY_UNIT")
-                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers("/api/reports/test").permitAll()
+                        .requestMatchers("/api/reports").hasAuthority("ROLE_DUTY_OFFICER_OF_MILITARY_UNIT")
+                        .requestMatchers("/api/upload").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationManager(authenticationManager)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Это нормально
-                );
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .rememberMe(rememberMe -> rememberMe.disable())
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -59,16 +57,15 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Replace with your frontend URL(s)
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE")); // Or "*" for all methods
-        configuration.setAllowedHeaders(List.of("*")); // Or specify allowed headers
-        configuration.setAllowCredentials(true); // Important if you're using cookies or Authorization header
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Apply to all endpoints
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -87,6 +84,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-
 }

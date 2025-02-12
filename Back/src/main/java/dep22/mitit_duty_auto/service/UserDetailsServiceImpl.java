@@ -22,8 +22,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        System.out.println("==DEBUG== UserDetailsServiceImpl: Загрузка пользователя: " + username);
+
         User user = userRepository.findByName(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+
+
+        System.out.println("==DEBUG== UserDetailsServiceImpl: Пользователь найден: " + user.getName());
+        System.out.println("==DEBUG== UserDetailsServiceImpl: Роли пользователя: " + user.getRole());
 
         Collection<? extends GrantedAuthority> authorities = mapRolesToAuthorities(user.getRole());
 
@@ -43,7 +49,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
         List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role.name()));
         for (SimpleGrantedAuthority authority : authorities) {
-            System.out.println("Authority: " + authority.getAuthority()); // Выводим каждое право доступа
+            System.out.println("Authority: " + authority.getAuthority());
         }
         return authorities;
     }
