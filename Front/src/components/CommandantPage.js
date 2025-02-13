@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from 'react-router-dom';
 import KyivTime from './KyivTime';
 import Navbar from "./Navbar";
@@ -7,11 +7,18 @@ import Schedule from './Schedule';
 import Report from "./Report";
 import DocumentForm from "./Documents/DocumentForm";
 
+import Sidebar from "./Sidebar";
+
 
 function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertTriggered, setAlertTriggered, setCurrentEventIndex, setTimeLeft,
     setSharedDocument }) {
     const location = useLocation();
+    const [isModalOpen, setIsModalOpen] = useState(false); // Стан для модального вікна
 
+    // Функція для відкриття/закриття модального вікна
+    const toggleModal = () => {
+        setIsModalOpen(prev => !prev);
+    };
     // Calculate time left for the current event
     const calculateTimeLeft = (eventTime) => {
         const now = new Date();
@@ -83,35 +90,43 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
 
 
     return (
-        <div className=" wrapper">
-            <div className="left-section">
-                <KyivTime /> {/* Display Kyiv time here */}
-            </div>
-            <div className="navbar-section">
-                <Navbar
-                    events={events}
-                    currentEventIndex={currentEventIndex}
-                    timeLeft={timeLeft}
-                    triggerReportClick={() => console.log("Report Triggered")}
-                />
-            </div>
-            <div className="schedule-section">
-                <Schedule
-                    events={events}
-                    currentEventIndex={currentEventIndex}
-                />
-            </div>
-            {/* <div className="reports-section">
-                <Report reportRef={reportRef} />
-            </div>
-            <div className="instructions-section">
-                <Instruction />
-            </div> */}
-            <DocumentForm></DocumentForm>
+        <div className="main-layout">
+            {/* Бічна панель з іконками */}
+            <Sidebar toggleModal={toggleModal} />
+            <div className=" wrapper">
+                <div className="left-section">
+                    <KyivTime /> {/* Display Kyiv time here */}
+                </div>
+                <div className="navbar-section">
+                    <Navbar
+                        events={events}
+                        currentEventIndex={currentEventIndex}
+                        timeLeft={timeLeft}
+                        triggerReportClick={() => console.log("Report Triggered")}
+                    />
+                </div>
+                <div className="schedule-section">
+                    <Schedule
+                        events={events}
+                        currentEventIndex={currentEventIndex}
+                    />
+                </div>
+
+
+                {isModalOpen && (
+                    <div className="modal-overlay" onClick={toggleModal}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <button className="close-btn" onClick={toggleModal}>
+                                &times;
+                            </button>
+                            <DocumentForm />
+                        </div>
+                    </div>
+                )}
 
 
 
-
+            </div>
         </div>
     );
 
