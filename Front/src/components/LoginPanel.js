@@ -28,14 +28,12 @@ const LoginPanel = () => {
 
             // Получение ответа
             const data = await response.json(); // Предполагаем, что сервер возвращает объект { role: "USER"/"ADMIN" }
-            alert(data.token)
             // Сохранение токена, если есть (опционально)
             if (data.token) {
                 localStorage.setItem("authToken", data.token);
             }
 
-            // Проверка роли пользователя и перенаправление
-            alert(data.role)
+            localStorage.setItem("role", data.role)
             switch (data.role) {
                 case "DUTY_OFFICER_OF_MILITARY_UNIT":
                     navigate("/dutyOfficer");

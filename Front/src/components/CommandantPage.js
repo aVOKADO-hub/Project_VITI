@@ -5,17 +5,12 @@ import KyivTime from './KyivTime';
 import Navbar from "./Navbar";
 import Schedule from './Schedule';
 import Report from "./Report";
-import DocumentForm from "./DocumentForm";
+import DocumentForm from "./Documents/DocumentForm";
 
 
 function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertTriggered, setAlertTriggered, setCurrentEventIndex, setTimeLeft,
     setSharedDocument }) {
     const location = useLocation();
-    const token = localStorage.getItem("authToken")
-    const typeOfDocument = {
-        DAILY_ORDER: 'Добовий наказ',
-        PERSONNEL_EXPENDITURE: "Розхід"
-    }
 
     // Calculate time left for the current event
     const calculateTimeLeft = (eventTime) => {

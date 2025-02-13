@@ -4,7 +4,12 @@ import dep22.mitit_duty_auto.dto.DocumentDto;
 import dep22.mitit_duty_auto.entities.enums.TypeOfDocument;
 import dep22.mitit_duty_auto.entities.security.Roles;
 import dep22.mitit_duty_auto.service.DocumentService;
+import org.springframework.core.io.Resource; // Правильний імпорт!
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,12 +19,16 @@ import org.springframework.web.multipart.MultipartFile;
 import dep22.mitit_duty_auto.entities.Document;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 @RestController
-//@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/documents")
 public class DocumentController {
 
@@ -40,6 +49,48 @@ public class DocumentController {
 public List<DocumentDto> getAllDocuments(@RequestParam("sendTo") Roles sendTo) {
     return documentService.getAllDocuments(sendTo);
 }
+    @GetMapping("/download")
+    public ResponseEntity<Resource> downloadDocument(@RequestParam("filePath") String filePath) {
+        try {
+            // Нормалізуємо шлях
+            String normalizedFilePath = filePath.replace("\\", "/");
+            Path filePathResolved = Paths.get(normalizedFilePath).normalize();
+
+            if (!Files.exists(filePathResolved)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            // Завантажуємо файл
+            Resource resource = (Resource) new UrlResource(filePathResolved.toUri());
+
+            // Визначаємо тип файлу
+            String contentType = Files.probeContentType(filePathResolved);
+            if (contentType == null) {
+                contentType = "application/octet-stream"; // Якщо тип не визначено
+            }
+
+            // Відправляємо файл назад з правильним заголовком
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filePathResolved.getFileName() + "\"")
+                    .body(resource);
+
+        } catch (IOException ex) {
+            // Логування помилки
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        } catch (Exception e) {
+            // Обробка загальних помилок
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+
+
+
+
+
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadDocument(

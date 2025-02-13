@@ -6,22 +6,20 @@ import Navbar from "./Navbar";
 import Schedule from './Schedule';
 import Report from "./Report";
 import Instruction from './Instruction';
-import { saveAs } from 'file-saver';
+import DocumentsTable from "./Documents/DocumentsTable";
+import Sidebar from "./Sidebar";
 
 
-function MainLayout({ events,
-    currentEventIndex,
-    timeLeft,
-    reportRef,
-    alertTriggered,
-    setAlertTriggered,
-    setCurrentEventIndex,
-    setTimeLeft,
-    sharedDocument }) {
+
+
+function MainLayout({ events, currentEventIndex, timeLeft, reportRef, alertTriggered, setAlertTriggered, setCurrentEventIndex, setTimeLeft }) {
     const location = useLocation();
-    const [receivedDocument, setReceivedDocument] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false); // Стан для модального вікна
 
-    // Calculate time left for the current event
+    // Функція для відкриття/закриття модального вікна
+    const toggleModal = () => {
+        setIsModalOpen(prev => !prev);
+    };
     const calculateTimeLeft = (eventTime) => {
         const now = new Date();
         const eventDate = new Date(`${now.toISOString().split("T")[0]}T${eventTime}`);
@@ -38,9 +36,6 @@ function MainLayout({ events,
             return { hours: 0, minutes: 0, seconds: 0, totalMilliseconds: 0 };
         }
     };
-
-    // Timer logic to check current event and trigger alerts, only if not in /admin
-    // Перший useEffect для таймера подій
     useEffect(() => {
         const timer = setInterval(() => {
             if (events.length > 0 && location.pathname !== "/admin") {
@@ -62,58 +57,49 @@ function MainLayout({ events,
 
         return () => clearInterval(timer);
     }, [events, currentEventIndex, alertTriggered, location.pathname, setTimeLeft]);
-
-    // Другий useEffect для обробки отриманого документа
-    // useEffect(() => {
-    //     console.log("Зміна sharedDocument:", sharedDocument);
-    // }, [sharedDocument]);
-
     return (
-        <div className="wrapper">
-            <div className="left-section">
-                <KyivTime /> {/* Display Kyiv time here */}
+        <div className="main-layout">
+            {/* Бічна панель з іконками */}
+            <Sidebar toggleModal={toggleModal} />
+
+            <div className="wrapper">
+                <div className="left-section">
+                    <KyivTime />
+                </div>
+                <div className="navbar-section">
+                    <Navbar
+                        events={events}
+                        currentEventIndex={currentEventIndex}
+                        timeLeft={timeLeft}
+                        triggerReportClick={() => console.log("Report Triggered")}
+                    />
+                </div>
+                <div className="schedule-section">
+                    <Schedule
+                        events={events}
+                        currentEventIndex={currentEventIndex}
+                    />
+                </div>
+                <div className="reports-section">
+                    <Report reportRef={reportRef} />
+                </div>
+                <div className="instructions-section">
+                    <Instruction />
+                </div>
             </div>
-            <div className="navbar-section">
-                <Navbar
-                    events={events}
-                    currentEventIndex={currentEventIndex}
-                    timeLeft={timeLeft}
-                    triggerReportClick={() => console.log("Report Triggered")}
-                />
-            </div>
-            <div className="schedule-section">
-                <Schedule
-                    events={events}
-                    currentEventIndex={currentEventIndex}
-                />
-            </div>
-            <div className="reports-section">
-                <Report reportRef={reportRef} />
-            </div>
-            <div className="instructions-section">
-                <Instruction />
-            </div>
-            {receivedDocument && (
-                <div className="shared-document-section bg-gray-100 p-4 rounded-lg shadow-md">
-                    <h3>Отриманий документ</h3>
-                    <p>Назва файлу: {receivedDocument.fileName}</p>
-                    <p>Отримано о: {new Date(receivedDocument.timestamp).toLocaleString()}</p>
-                    <button
-                        onClick={() => {
-                            try {
-                                saveAs(receivedDocument.blob, receivedDocument.fileName);
-                            } catch (error) {
-                                console.error("Помилка завантаження:", error);
-                                alert("Не вдалося завантажити документ");
-                            }
-                        }}
-                    >
-                        Завантажити документ
-                    </button>
+
+            {/* Модальне вікно для DocumentsTable */}
+            {isModalOpen && (
+                <div className="modal-overlay" onClick={toggleModal}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <button className="close-btn" onClick={toggleModal}>
+                            &times;
+                        </button>
+                        <DocumentsTable />
+                    </div>
                 </div>
             )}
         </div>
     );
-
 }
 export default MainLayout

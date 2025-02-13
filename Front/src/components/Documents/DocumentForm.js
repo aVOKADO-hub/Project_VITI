@@ -11,8 +11,8 @@ function DocumentForm() {
     // Завантажуємо ролі та типи документів (можна отримати із бекенду або через константи)
     useEffect(() => {
         setRoles([
-            { value: 'dutyOfficer', label: 'Черговий інституту' },
-            { value: 'ChiefOfStaff', label: 'Начальник штабу' },
+            { value: 'DUTY_OFFICER_OF_MILITARY_UNIT', label: 'Черговий інституту' },
+            { value: 'CHIEF_OF_STAFF', label: 'Начальник штабу' },
         ]);
 
         setDocumentTypes([
@@ -41,6 +41,8 @@ function DocumentForm() {
             const formData = new FormData();
             formData.append('document', file);
             formData.append("typeOfDocument", selectedDocType);
+            formData.append("createBy", localStorage.getItem("role"));
+            formData.append("sendTo", selectedRole);
 
             const fileUploadResponse = await fetch('http://localhost:8080/api/documents/upload', {
                 method: 'POST',
@@ -62,8 +64,7 @@ function DocumentForm() {
                 title: file.name, // Назва документа з назви файлу
                 typeOfDocument: selectedDocType,
                 path: fileUploadResult.path, // Шлях з першого запиту
-                // createBy: localStorage.getItem('role'), // Значення з локального сховища
-                createBy: "fooRole",
+                createBy: localStorage.getItem('role'),
                 sendTo: selectedRole,
             };
 
