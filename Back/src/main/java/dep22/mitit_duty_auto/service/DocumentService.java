@@ -5,6 +5,7 @@ import dep22.mitit_duty_auto.entities.Document;
 import dep22.mitit_duty_auto.entities.enums.TypeOfDocument;
 import dep22.mitit_duty_auto.entities.security.Roles;
 import dep22.mitit_duty_auto.repos.DocumentRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -121,17 +122,25 @@ public class DocumentService {
 //        }
         List<Document> documents = documentRepository.findBySendTo(sendTo);
 
-        // Сортировка: сначала isRead = false, потом остальные
+
         List<Document> sortedDocuments = documents.stream()
                 .sorted(Comparator.comparing(Document::isRead))
                 .collect(Collectors.toList());
 
 
         List<DocumentDto> documentDtos = sortedDocuments.stream()
-                .map(this::convertToDto) // Assuming you have this method
+                .map(this::convertToDto)
                 .collect(Collectors.toList());
 
         return documentDtos;
+    }
+
+    public void markAsRead(Integer id) {
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Документ не знайдено"));
+
+        document.setRead(true);
+        documentRepository.save(document);
     }
 
     private DocumentDto convertToDto(Document document) {

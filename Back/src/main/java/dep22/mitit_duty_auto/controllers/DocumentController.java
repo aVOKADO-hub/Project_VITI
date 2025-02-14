@@ -4,6 +4,7 @@ import dep22.mitit_duty_auto.dto.DocumentDto;
 import dep22.mitit_duty_auto.entities.enums.TypeOfDocument;
 import dep22.mitit_duty_auto.entities.security.Roles;
 import dep22.mitit_duty_auto.service.DocumentService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.core.io.Resource; // Правильний імпорт!
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.UrlResource;
@@ -136,7 +137,25 @@ public List<DocumentDto> getAllDocuments(@RequestParam("sendTo") Roles sendTo) {
             );
             return ResponseEntity.ok(savedDocument);
         } else {
-            return ResponseEntity.status(403).body(null); // Or appropriate response
+            return ResponseEntity.status(403).body(null);
+        }
+    }
+
+    @PatchMapping("/{id}/markAsRead")
+    public ResponseEntity<?> markAsRead(@PathVariable Integer id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && isAuthenticated(authentication)) {
+            try {
+                documentService.markAsRead(id);
+                return ResponseEntity.ok().build();
+            } catch (EntityNotFoundException e) {
+                return ResponseEntity.notFound().build();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.internalServerError().build();
+            }
+        } else {
+            return ResponseEntity.status(403).body("Forbidden");
         }
     }
 
