@@ -15,6 +15,14 @@ import Sidebar from "./Sidebar";
 function MainLayout({ events, currentEventIndex, timeLeft, reportRef, alertTriggered, setAlertTriggered, setCurrentEventIndex, setTimeLeft }) {
     const location = useLocation();
     const [isModalOpen, setIsModalOpen] = useState(false); // Стан для модального вікна
+    const [unreadDocumentsCount, setUnreadDocumentsCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const token = localStorage.getItem('authToken')
+    const role = localStorage.getItem('role')
+
+    const [documents, setDocuments] = useState([]);
+
 
     // Функція для відкриття/закриття модального вікна
     const toggleModal = () => {
@@ -57,10 +65,68 @@ function MainLayout({ events, currentEventIndex, timeLeft, reportRef, alertTrigg
 
         return () => clearInterval(timer);
     }, [events, currentEventIndex, alertTriggered, location.pathname, setTimeLeft]);
+
+    const fetchDocuments = async () => {
+        try {
+            const response = await fetch(`http://localhost:8080/api/documents?sendTo=${role}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch documents');
+            }
+
+            const data = await response.json();
+            const updatedDocuments = data.map(doc => {
+                let updatedDoc = { ...doc }; // Копіюємо початковий документ
+
+                // Оновлення поля createBy
+                switch (updatedDoc.createBy) {
+                    case 'CHIEF_OF_TROOPS_SERVICE':
+                        updatedDoc.createBy = 'Начальник служби військ';
+                        break;
+                    // Додаткові умови для інших значень createBy, якщо потрібно
+                    default:
+                        break;
+                }
+
+                // Оновлення поля typeOfDocument
+                switch (updatedDoc.typeOfDocument) {
+                    case 'DAILY_ORDER':
+                        updatedDoc.typeOfDocument = 'Добовий наказ';
+                        break;
+                    case 'PERSONNEL_EXPENDITURE':
+                        updatedDoc.typeOfDocument = 'Розхід';
+                        break;
+                    // Додаткові умови для інших значень typeOfDocument, якщо потрібно
+                    default:
+                        break;
+                }
+
+                return updatedDoc;
+            });
+
+
+            setDocuments(updatedDocuments);
+            console.log(updatedDocuments)
+            setUnreadDocumentsCount(data.filter(doc => !doc.read).length);
+            console.log(`DATA ${data}`)
+
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchDocuments();
+    }, [role, token]); // Видалили documents зі списку залежностей
     return (
         <div className="main-layout">
             {/* Бічна панель з іконками */}
-            <Sidebar toggleModal={toggleModal} />
+            <Sidebar toggleModal={toggleModal} hasUnreadDocuments={unreadDocumentsCount > 0} />
 
             <div className="wrapper">
                 <div className="left-section">
@@ -95,7 +161,12 @@ function MainLayout({ events, currentEventIndex, timeLeft, reportRef, alertTrigg
                         <button className="close-btn" onClick={toggleModal}>
                             &times;
                         </button>
-                        <DocumentsTable />
+                        <DocumentsTable setUnreadDocumentsCount={setUnreadDocumentsCount}
+                            documents={documents}
+                            setDocuments={setDocuments}
+                            fetchDocuments={fetchDocuments}
+                            loading={loading}
+                            error={error} />
                     </div>
                 </div>
             )}

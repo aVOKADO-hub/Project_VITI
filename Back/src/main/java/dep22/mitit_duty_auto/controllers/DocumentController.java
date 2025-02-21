@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PATCH, RequestMethod.DELETE, RequestMethod.OPTIONS})
 @RequestMapping("/api/documents")
 public class DocumentController {
 
@@ -146,6 +146,7 @@ public List<DocumentDto> getAllDocuments(@RequestParam("sendTo") Roles sendTo) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && isAuthenticated(authentication)) {
             try {
+
                 documentService.markAsRead(id);
                 return ResponseEntity.ok().build();
             } catch (EntityNotFoundException e) {

@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/sendTo").permitAll()
                         .requestMatchers("/api/documents").permitAll()
                         .requestMatchers("/api/documents/download").permitAll()
+                        .requestMatchers("/api/documents/31/markAsRead").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationManager(authenticationManager)
@@ -61,7 +62,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE","PATCH ", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 

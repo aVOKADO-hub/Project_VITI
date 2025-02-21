@@ -565,9 +565,13 @@ form{
     padding: 10px;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
+}
+.tools{
+  display: flex;
+  flex-direction: column;
     gap: 10px;
 }
-
 /* Іконки в Sidebar */
 .sidebar .icon {
     cursor: pointer;
@@ -576,11 +580,12 @@ form{
     border-radius: 8px;
     transition: background 0.3s;
     max-width: 50px;
+    max-height: 50px;
 }
 .sidebar .documents{
   position: relative;
 }
-.sidebar .documents::after {
+.notification::after {
   content:"";
   position:absolute;
   top: 0;
@@ -595,4 +600,5 @@ form{
 .sidebar .icon:hover {
     background: #ccc;
 }
+
 

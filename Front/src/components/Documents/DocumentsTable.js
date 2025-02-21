@@ -1,35 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
-const DocumentsTable = () => {
-    const [documents, setDocuments] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+const DocumentsTable = ({ documents, setDocuments, fetchDocuments, loading, error }) => {
+
+
     const token = localStorage.getItem('authToken')
     const role = localStorage.getItem('role')
 
-    useEffect(() => {
-        const fetchDocuments = async () => {
-            try {
-                const response = await fetch(`http://localhost:8080/api/documents?sendTo=${role}`, {
 
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    }
-                });
-                if (!response.ok) {
-                    throw new Error('Failed to fetch documents');
-                }
-                const data = await response.json();
-                setDocuments(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchDocuments();
-    }, []);
 
     if (loading) {
         return (
@@ -48,32 +25,47 @@ const DocumentsTable = () => {
             </div>
         );
     }
-    const handleDownload = async (filePath, fileType) => {
-
-
-        fetch(`http://localhost:8080/api/documents/download?filePath=${encodeURIComponent(filePath)}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
-            .then(response => {
-                if (response.ok) {
-                    return response.blob(); // Отримуємо файл як Blob
-                } else {
-                    throw new Error('File not found');
+    const markAsRead = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:8080/api/documents/${id}/markAsRead`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
                 }
-            })
-            .then(blob => {
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = filePath.split('/').pop(); // Ім’я файлу
-                link.click();
-            })
-            .catch(error => {
-                console.error('Error:', error);
             });
 
+            if (response.ok) {
+                await fetchDocuments();
+            } else {
+                console.error("Помилка під час відзначення документа прочитаним");
+            }
+        } catch (error) {
+            console.error("Помилка:", error);
+        }
+    };
+    const handleDownload = async (filePath, fileId) => {
+        try {
+            const response = await fetch(`http://localhost:8080/api/documents/download?filePath=${encodeURIComponent(filePath)}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('File not found');
+            }
+
+            const blob = await response.blob();
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filePath.split('/').pop(); // Ім’я файлу
+            link.click();
+
+            await markAsRead(fileId);
+        } catch (error) {
+            console.error('Error:', error);
+        }
     };
 
     return (
@@ -105,13 +97,13 @@ const DocumentsTable = () => {
                                     <td>{doc.sendDate ? new Date(doc.sendDate).toLocaleString('uk-UA') : '-'}</td>
                                     <td>{doc.createBy}</td>
                                     <td>
-                                        <span className={`badge ${doc.isRead ? 'bg-success' : 'bg-warning'}`}>
-                                            {doc.isRead ? 'Прочитано' : 'Не прочитано'}
+                                        <span className={`badge ${doc.read ? 'bg-success' : 'bg-warning'}`}>
+                                            {doc.read ? 'Прочитано' : 'Не прочитано'}
                                         </span>
                                     </td>
                                     <button
                                         className="btn btn-link p-0"
-                                        onClick={() => handleDownload(doc.path, doc.typeOfDocument)}
+                                        onClick={() => handleDownload(doc.path, doc.id)}
                                         title="Завантажити документ"
                                     >
                                         <img src={require('../../img/docs-downoad.png')} alt="Docs" style={

@@ -14,12 +14,18 @@ const AdminPanel = () => {
   });
   const [error, setError] = useState(null);
 
+  const token = localStorage.getItem('authToken')
+
   // Fetch the data based on selected dataType
   useEffect(() => {
     const fetchData = async () => {
       setError(null); // Clear previous errors
       try {
-        const response = await fetch(`http://localhost:8080/api/${dataType}`);
+        const response = await fetch(`http://localhost:8080/api/${dataType}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        });
         const result = await response.json();
         setData(result);
       } catch (error) {
@@ -36,68 +42,69 @@ const AdminPanel = () => {
   };
 
   const handleAddData = async () => {
-  // Check for required fields based on dataType
-  let requiredFields;
-  switch (dataType) {
-    case "events":
-      requiredFields = ["eventName", "eventTime"];
-      break;
-    case "instructions":
-    case "signals":
-      requiredFields = ["name", "description"];
-      break;
-    case "reports":
-      requiredFields = ["toWhom", "reportName", "description"];
-      break;
-    default:
-      return;
-  }
-
-  // Check if all required fields are filled
-  if (requiredFields.some((field) => !newData[field])) {
-    setError("Please fill in all required fields");
-    return;
-  }
-
-  // Remove the `id` field to let the backend auto-generate it
-  const { id, ...entryWithoutId } = newData; // This is correct
-
-
-  console.log("Attempting to add new entry:", entryWithoutId); // Debug log for the new entry without ID
-
-  try {
-    const response = await fetch(`http://localhost:8080/api/${dataType}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(entryWithoutId), // Send data without an ID field
-    });
-
-    console.log("Response status:", response.status); // Debug log for the response status
-
-    if (response.ok) {
-      const updatedData = await response.json();
-      setData((prevData) => [...prevData, updatedData]); // Add the new item
-      setNewData({
-        id: "",
-        name: "",
-        description: "",
-        eventName: "",
-        eventTime: "",
-        toWhom: "",
-        reportName: ""
-      }); // Clear input fields
-    } else {
-      const errorText = await response.text();
-      console.error("Failed to add data:", errorText); // Log error details
-      setError(`Failed to add data: ${errorText}`);
+    // Check for required fields based on dataType
+    let requiredFields;
+    switch (dataType) {
+      case "events":
+        requiredFields = ["eventName", "eventTime"];
+        break;
+      case "instructions":
+      case "signals":
+        requiredFields = ["name", "description"];
+        break;
+      case "reports":
+        requiredFields = ["toWhom", "reportName", "description"];
+        break;
+      default:
+        return;
     }
-  } catch (error) {
-    console.error("Error adding new data:", error); // Log network or parsing errors
-    setError(`Error adding new data: ${error.message}`);
-  }
-};
+
+    // Check if all required fields are filled
+    if (requiredFields.some((field) => !newData[field])) {
+      setError("Please fill in all required fields");
+      return;
+    }
+
+    // Remove the `id` field to let the backend auto-generate it
+    const { id, ...entryWithoutId } = newData; // This is correct
+
+
+    console.log("Attempting to add new entry:", entryWithoutId); // Debug log for the new entry without ID
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/${dataType}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(entryWithoutId), // Send data without an ID field
+      });
+
+      console.log("Response status:", response.status); // Debug log for the response status
+
+      if (response.ok) {
+        const updatedData = await response.json();
+        setData((prevData) => [...prevData, updatedData]); // Add the new item
+        setNewData({
+          id: "",
+          name: "",
+          description: "",
+          eventName: "",
+          eventTime: "",
+          toWhom: "",
+          reportName: ""
+        }); // Clear input fields
+      } else {
+        const errorText = await response.text();
+        console.error("Failed to add data:", errorText); // Log error details
+        setError(`Failed to add data: ${errorText}`);
+      }
+    } catch (error) {
+      console.error("Error adding new data:", error); // Log network or parsing errors
+      setError(`Error adding new data: ${error.message}`);
+    }
+  };
 
 
   // Function to delete an entry
@@ -105,6 +112,9 @@ const AdminPanel = () => {
     try {
       const response = await fetch(`http://localhost:8080/api/${dataType}/${id}`, {
         method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
       });
       if (response.ok) {
         setData((prevData) => prevData.filter((item) => item.id !== id)); // Remove the item from state
@@ -115,18 +125,18 @@ const AdminPanel = () => {
       setError("Error deleting item");
     }
   };
-const getHeaderText = (dataType) => {
-  const typeMap = {
-    instructions: "Інструкції",
-    events: "Елемент розпорядку",
-    reports: "Доповідь",
-    signals:"Сигнал"
-  };
-  
-  return typeMap[dataType] || dataType.charAt(0).toUpperCase() + dataType.slice(1);
-};
+  const getHeaderText = (dataType) => {
+    const typeMap = {
+      instructions: "Інструкції",
+      events: "Елемент розпорядку",
+      reports: "Доповідь",
+      signals: "Сигнал"
+    };
 
-const headerText = getHeaderText(dataType);
+    return typeMap[dataType] || dataType.charAt(0).toUpperCase() + dataType.slice(1);
+  };
+
+  const headerText = getHeaderText(dataType);
 
   return (
     <div className="admin-wrapper">
