@@ -21,5 +21,6 @@
         private String toWhom;
 
         private String description;
+        private boolean isDone; // Додане поле
 
     }

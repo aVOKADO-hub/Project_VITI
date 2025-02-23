@@ -1,5 +1,4 @@
 import React, { useState, useEffect, loading } from "react";
-import useAuthenticatedRequest from "./AuthenticatedRequest/useAuthenticatedRequest";
 
 
 const Report = ({ reportRef }) => {
@@ -9,27 +8,26 @@ const Report = ({ reportRef }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
   const token = localStorage.getItem('authToken')
-
-  useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/api/reports", {
-          credentials: 'include',
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          }
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch reports");
+  const [reportCompleted, setReportCompleted] = useState(false); // Додано стан
+  const fetchReports = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/reports", {
+        credentials: 'include',
+        headers: {
+          "Authorization": `Bearer ${token}`,
         }
-        const data = await response.json();
-        setReports(data);
-      } catch (error) {
-        console.error("Error fetching reports:", error);
-        setError("Unable to fetch reports. Please try again later.");
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch reports");
       }
-    };
-
+      const data = await response.json();
+      setReports(data);
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+      setError("Unable to fetch reports. Please try again later.");
+    }
+  };
+  useEffect(() => {
     fetchReports();
   }, []);
 
@@ -49,9 +47,35 @@ const Report = ({ reportRef }) => {
 
       const data = await response.json();
       setReportDetails(data.description);
+      setReportCompleted(data.done)
     } catch (error) {
       console.error("Error fetching report details:", error);
       setReportDetails("Помилка при завантаженні деталей доповіді");
+    }
+  };
+
+  const handleReportCompleted = async () => {
+    if (!selectedReport) return; // Якщо доповідь не вибрана, вийти
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/reports/${selectedReport}/done`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to mark report as done');
+      }
+
+      setReportCompleted(true); // Оновити стан після успішного запиту
+      // Оновити список доповідей, щоб відобразити зміни
+      fetchReports();
+    } catch (error) {
+      console.error('Error marking report as done:', error);
+      setError('Failed to mark report as done. Please try again.');
     }
   };
 
@@ -74,6 +98,7 @@ const Report = ({ reportRef }) => {
           className="search-input"
         />
         <h2>Доповіді</h2>
+
       </div>
 
       <div className="reports-container">
@@ -99,7 +124,15 @@ const Report = ({ reportRef }) => {
 
         <div className="reports-details">
           {reportDetails ? (
-            <p>{reportDetails}</p>
+            <div>
+              <p>{reportDetails}</p>
+              <div className="report-completed">
+                {!reportCompleted && (
+                  <button onClick={handleReportCompleted}>Виконано</button>
+                )}
+                {reportCompleted && <p>Доповідь виконано!</p>}
+              </div>
+            </div>
           ) : (
             <p>Оберіть доповідь для перегляду деталей</p>
           )}

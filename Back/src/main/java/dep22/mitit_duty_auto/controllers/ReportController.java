@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Collection;
 
 @RestController
-//@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/reports")
 public class ReportController {
 
@@ -96,6 +96,26 @@ public class ReportController {
             reportService.deleteReportById(id);
         } else {
             throw new org.springframework.security.access.AccessDeniedException("Access denied");
+        }
+    }
+    @PutMapping("/{id}/done")
+    public ResponseEntity<ListReport> markReportAsDone(@PathVariable Long id, HttpServletRequest request) {
+        String jsessionid = request.getSession().getId();
+        System.out.println("JSESSIONID in /api/reports/{id}/done: " + jsessionid);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Authentication in /api/reports/{id}/done: " + authentication);
+
+        if (authentication != null && isAuthenticated(authentication)) {
+            ListReport report = reportService.getReportById(id.intValue());
+            if (report == null) {
+                return ResponseEntity.notFound().build();
+            }
+            report.setDone(true);
+            ListReport updatedReport = reportService.saveReport(report);
+            return ResponseEntity.ok(updatedReport);
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 

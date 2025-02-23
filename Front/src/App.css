@@ -248,6 +248,15 @@
   font-size: 16px;
   text-align: center;
 }
+.reports-details{
+  position: relative;
+}
+.report-completed{
+  position: absolute;
+  bottom:10px;
+  right: 10px;
+
+}
 
 /* Stylish Toggle Buttons */
 .toggle-switch {

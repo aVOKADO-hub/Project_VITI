@@ -15,6 +15,7 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
     const location = useLocation();
     const [isModalOpen, setIsModalOpen] = useState(false); // Стан для модального вікна
 
+
     // Функція для відкриття/закриття модального вікна
     const toggleModal = () => {
         setIsModalOpen(prev => !prev);
@@ -59,34 +60,6 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
 
         return () => clearInterval(timer);
     }, [events, currentEventIndex, alertTriggered, location.pathname, setTimeLeft]); // Make sure setTimeLeft is included in the dependency array
-
-    const shareDocument = async () => {
-        try {
-            console.log("Надсилання документа...");
-            const response = await fetch('../dailyOrder.doc');
-            console.log("Статус відповіді:", response.status);
-
-            const blob = await response.blob();
-            console.log("Тип файлу:", blob.type);
-
-            setSharedDocument({
-                blob: blob,
-                fileName: "dailyOrder.doc",
-                timestamp: new Date().getTime()
-            });
-            console.log("Документ надіслано:", {
-                blob: blob,
-                fileName: "dailyOrder.doc",
-                timestamp: new Date().getTime()
-            });
-
-
-            alert("Документ надіслано успішно");
-        } catch (error) {
-            console.error("Помилка надсилання документа:", error);
-            alert("Невдалося відправити файл");
-        }
-    };
 
 
     return (
