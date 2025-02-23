@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/reports/test").permitAll()
-                        .requestMatchers("/api/reports").hasAuthority("ROLE_DUTY_OFFICER_OF_MILITARY_UNIT")
+                        .requestMatchers("/api/reports").hasAnyAuthority("ROLE_DUTY_OFFICER_OF_MILITARY_UNIT", "ROLE_CHIEF_OF_TROOPS_SERVICE")
                         .requestMatchers("/api/upload").permitAll()
                         .requestMatchers("/api/sendTo").permitAll()
                         .requestMatchers("/api/documents").permitAll()

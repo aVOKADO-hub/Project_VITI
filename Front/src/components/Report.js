@@ -1,7 +1,7 @@
 import React, { useState, useEffect, loading } from "react";
 
 
-const Report = ({ reportRef }) => {
+const Report = ({ reportRef, }) => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [reportDetails, setReportDetails] = useState(null);
   const [reports, setReports] = useState([]);

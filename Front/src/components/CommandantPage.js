@@ -14,7 +14,48 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
     setSharedDocument }) {
     const location = useLocation();
     const [isModalOpen, setIsModalOpen] = useState(false); // Стан для модального вікна
+    const [reports, setReports] = useState([]); // Додано стан для reports
+    const [reportNotifications, setReportNotifications] = useState([]);
+    const token = localStorage.getItem('authToken');
+    const [error, setError] = useState(null);
 
+    const fetchReports = async () => {
+        try {
+            const response = await fetch("http://localhost:8080/api/reports", {
+                credentials: 'include',
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                }
+            });
+            if (!response.ok) {
+                throw new Error("Failed to fetch reports");
+            }
+            const data = await response.json();
+            setReports(data);
+        } catch (error) {
+            console.error("Error fetching reports:", error);
+            setError("Unable to fetch reports. Please try again later.");
+        }
+    };
+
+    useEffect(() => {
+        fetchReports();
+        const intervalId = setInterval(fetchReports, 5 * 60 * 1000); // 5 хвилин
+        return () => clearInterval(intervalId);
+    }, []);
+
+
+    useEffect(() => {
+        if (reports.length > 0) {
+            const now = new Date();
+            const newNotifications = reports
+                .filter(report => !report.done)
+                .filter(report => new Date(report.reportName) < now) // Перевірка терміну
+                .map(report => `Доповідь "${report.reportName}" не виконана!`);
+            setReportNotifications(newNotifications);
+            console.log(newNotifications)
+        }
+    }, [reports]);
 
     // Функція для відкриття/закриття модального вікна
     const toggleModal = () => {
@@ -60,7 +101,16 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
 
         return () => clearInterval(timer);
     }, [events, currentEventIndex, alertTriggered, location.pathname, setTimeLeft]); // Make sure setTimeLeft is included in the dependency array
+    useEffect(() => {
+        if (reports.length > 0) {
+            const newNotifications = reports.filter(report => !report.done).map(report => `Доповідь "${report.reportName}" не виконана!`);
+            setReportNotifications(newNotifications);
+        }
+    }, [reports]);
 
+    const handleReportsChange = (newReports) => {
+        setReports(newReports);
+    };
 
     return (
         <div className="main-layout">
@@ -84,7 +134,13 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
                         currentEventIndex={currentEventIndex}
                     />
                 </div>
-
+                {reportNotifications.length > 0 && (
+                    <div className="report-notifications">
+                        {reportNotifications.map((notification, index) => (
+                            <p key={index}>{notification}</p>
+                        ))}
+                    </div>
+                )}
 
                 {isModalOpen && (
                     <div className="modal-overlay" onClick={toggleModal}>
