@@ -576,7 +576,8 @@ form{
     flex-direction: column;
     justify-content: space-between;
 }
-.tools{
+.tools,
+.chief-of-troops-container{
   display: flex;
   flex-direction: column;
     gap: 10px;
@@ -605,7 +606,14 @@ form{
   background-color: red;
 
 }
+.warning{
+  animation: report-warning 0.7s infinite;
+}
 
+@keyframes report-warning {
+  from {background-color: #fff;}
+  to {background-color: red;}
+}
 .sidebar .icon:hover {
     background: #ccc;
 }

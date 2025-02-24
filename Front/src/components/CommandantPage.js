@@ -14,6 +14,7 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
     setSharedDocument }) {
     const location = useLocation();
     const [isModalOpen, setIsModalOpen] = useState(false); // Стан для модального вікна
+    const [isReportsModalOpen, setIsReportsModalOpen] = useState(false); // Стан для модального вікна
     const [reports, setReports] = useState([]); // Додано стан для reports
     const [reportNotifications, setReportNotifications] = useState([]);
     const token = localStorage.getItem('authToken');
@@ -31,6 +32,7 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
                 throw new Error("Failed to fetch reports");
             }
             const data = await response.json();
+            console.log(`fetch data: ${JSON.stringify(data)}`)
             setReports(data);
         } catch (error) {
             console.error("Error fetching reports:", error);
@@ -44,22 +46,37 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
         return () => clearInterval(intervalId);
     }, []);
 
+    const parseTime = (timeString) => {
+        const [hours, minutes] = timeString.split(':').map(Number);
+        const now = new Date();
+        const reportTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+        return reportTime;
+    };
 
     useEffect(() => {
         if (reports.length > 0) {
             const now = new Date();
+            console.log(`now: ${now}`)
+            console.log(`report list: ${JSON.stringify(reports)}`)
             const newNotifications = reports
-                .filter(report => !report.done)
-                .filter(report => new Date(report.reportName) < now) // Перевірка терміну
-                .map(report => `Доповідь "${report.reportName}" не виконана!`);
+                .filter((report) => !report.done)
+                .filter((report) => {
+                    const reportTime = parseTime(report.reportName);
+                    return reportTime < now;
+                })
+                .map((report) => `Доповідь "${report.reportName}" не виконана!`);
+
             setReportNotifications(newNotifications);
-            console.log(newNotifications)
+            console.log(`new notif: ${JSON.stringify(newNotifications)}`)
         }
     }, [reports]);
 
     // Функція для відкриття/закриття модального вікна
     const toggleModal = () => {
         setIsModalOpen(prev => !prev);
+    };
+    const toggleReportsModal = () => {
+        setIsReportsModalOpen(prev => !prev);
     };
     // Calculate time left for the current event
     const calculateTimeLeft = (eventTime) => {
@@ -101,21 +118,13 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
 
         return () => clearInterval(timer);
     }, [events, currentEventIndex, alertTriggered, location.pathname, setTimeLeft]); // Make sure setTimeLeft is included in the dependency array
-    useEffect(() => {
-        if (reports.length > 0) {
-            const newNotifications = reports.filter(report => !report.done).map(report => `Доповідь "${report.reportName}" не виконана!`);
-            setReportNotifications(newNotifications);
-        }
-    }, [reports]);
 
-    const handleReportsChange = (newReports) => {
-        setReports(newReports);
-    };
+
 
     return (
         <div className="main-layout">
             {/* Бічна панель з іконками */}
-            <Sidebar toggleModal={toggleModal} />
+            <Sidebar toggleModal={toggleModal} toggleReportsModal={toggleReportsModal} reportNotifications={reportNotifications} />
             <div className=" wrapper">
                 <div className="left-section">
                     <KyivTime /> {/* Display Kyiv time here */}
@@ -134,13 +143,7 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
                         currentEventIndex={currentEventIndex}
                     />
                 </div>
-                {reportNotifications.length > 0 && (
-                    <div className="report-notifications">
-                        {reportNotifications.map((notification, index) => (
-                            <p key={index}>{notification}</p>
-                        ))}
-                    </div>
-                )}
+
 
                 {isModalOpen && (
                     <div className="modal-overlay" onClick={toggleModal}>
@@ -149,6 +152,22 @@ function CommandantPage({ events, currentEventIndex, timeLeft, reportRef, alertT
                                 &times;
                             </button>
                             <DocumentForm />
+                        </div>
+                    </div>
+                )}
+                {isReportsModalOpen && (
+                    <div className="modal-overlay" onClick={toggleReportsModal}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <button className="close-btn" onClick={toggleReportsModal}>
+                                &times;
+                            </button>
+                            {reportNotifications.length > 0 && (
+                                <div className="report-notifications">
+                                    {reportNotifications.map((notification, index) => (
+                                        <p key={index}>{notification}</p>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Modal, Button } from 'react-bootstrap';
 
-const Sidebar = ({ toggleModal, hasUnreadDocuments }) => {
+const Sidebar = ({ toggleModal, toggleReportsModal, hasUnreadDocuments, reportNotifications }) => {
     const navigate = useNavigate();
     const [showExitModal, setShowExitModal] = useState(false);
 
@@ -23,24 +23,41 @@ const Sidebar = ({ toggleModal, hasUnreadDocuments }) => {
             <aside className="sidebar">
                 <div className="tools">
                     {/* Іконка для відкриття модального вікна документів */}
-                    <div className={`icon documents ${hasUnreadDocuments ? 'notification' : ''}`} onClick={toggleModal} title="Документи">
-                        <img src={require('../img/docs.png')} alt="Docs-menu" style={{ width: "30px" }} />
-                    </div>
+                    {role === 'CHIEF_OF_TROOPS_SERVICE' ? (
+                        <div className={`icon documents`} onClick={toggleModal} title="Відправка документів">
+                            <img src={require('../img/file-transfer.png')} alt="Docs-menu" style={{ width: "30px" }} />
+                        </div>
+                    ) : (
+                        <div className={`icon documents ${hasUnreadDocuments ? 'notification' : ''}`} onClick={toggleModal} title="Документи">
+                            <img src={require('../img/docs.png')} alt="Docs-menu" style={{ width: "30px" }} />
+                        </div>
+                    )}
 
                     {/* Додаткові іконки для інших інструментів у майбутньому */}
                     <div className="icon" title="Інший інструмент">
                         <img src={require('../img/tools.png')} alt="Other-tool" style={{ width: "30px" }} />
                     </div>
                     {role === 'CHIEF_OF_TROOPS_SERVICE' ? (
-                        <div className="icon admin-panel">
-                            <img
-                                src={require('../img/admin.png')}
-                                alt="admin"
-                                style={{
-                                    width: "30px", height: "30px"
-                                }}
-                                onClick={handleAdminPanelEnter}
-                            />
+                        <div className="chief-of-troops-container">
+                            <div className="icon admin-panel" title="Вхід в адмін панель">
+                                <img
+                                    src={require('../img/admin.png')}
+                                    alt="admin"
+                                    style={{
+                                        width: "30px", height: "30px"
+                                    }}
+                                    onClick={handleAdminPanelEnter}
+                                />
+                            </div>
+                            <div className={`icon reports-warn ${reportNotifications.length > 0 ? "warning" : ""}`} title="Невиконані доповіді" onClick={toggleReportsModal}>
+                                <img
+                                    src={require('../img/warning.png')}
+                                    alt="reports"
+                                    style={{
+                                        width: "30px", height: "30px"
+                                    }}
+                                />
+                            </div>
                         </div>
                     ) : null}
                 </div>
