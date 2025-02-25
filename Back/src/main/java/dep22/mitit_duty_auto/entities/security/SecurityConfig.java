@@ -4,6 +4,7 @@ import dep22.mitit_duty_auto.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -35,8 +36,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/reports/test").permitAll()
                         .requestMatchers("/api/reports").hasAnyAuthority("ROLE_DUTY_OFFICER_OF_MILITARY_UNIT", "ROLE_CHIEF_OF_TROOPS_SERVICE")
@@ -44,7 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/sendTo").permitAll()
                         .requestMatchers("/api/documents").permitAll()
                         .requestMatchers("/api/documents/download").permitAll()
-                        .requestMatchers("/api/documents/{id}/markAsRead").permitAll()
+                        .requestMatchers("/api/documents/*/markAsRead").permitAll()
                         .requestMatchers("/api/reports/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -62,10 +64,12 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOriginPattern("*");
         configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE","PATCH ", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
+
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
