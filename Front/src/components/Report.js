@@ -1,28 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, loading } from "react";
 
-const Report = ({ reportRef }) => {
+
+const Report = ({ reportRef, }) => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [reportDetails, setReportDetails] = useState(null);
   const [reports, setReports] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(""); // State for search input
-  const [error, setError] = useState(null); // Add error handling
-
-  // Fetch all reports when the component is mounted
-  useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/api/reports");
-        if (!response.ok) {
-          throw new Error("Failed to fetch reports");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState(null);
+  const token = localStorage.getItem('authToken')
+  const [reportCompleted, setReportCompleted] = useState(false); // Додано стан
+  const fetchReports = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/api/reports", {
+        credentials: 'include',
+        headers: {
+          "Authorization": `Bearer ${token}`,
         }
-        const data = await response.json();
-        setReports(data); // Assuming your API returns an array of reports
-      } catch (error) {
-        console.error("Error fetching reports:", error);
-        setError("Unable to fetch reports. Please try again later.");
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch reports");
       }
-    };
-
+      const data = await response.json();
+      setReports(data);
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+      setError("Unable to fetch reports. Please try again later.");
+    }
+  };
+  useEffect(() => {
     fetchReports();
   }, []);
 
@@ -30,64 +35,108 @@ const Report = ({ reportRef }) => {
     setSelectedReport(reportId);
 
     try {
-      const response = await fetch(`http://localhost:8080/api/reports/${reportId}`);
+      const response = await fetch(`http://localhost:8080/api/reports/${reportId}`, {
+        credentials: 'include',
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        }
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch report details");
       }
+
       const data = await response.json();
-      setReportDetails(data.description); // Assuming report has a 'description' field
+      setReportDetails(data.description);
+      setReportCompleted(data.done)
     } catch (error) {
       console.error("Error fetching report details:", error);
-      setError("Unable to fetch report details. Please try again later.");
+      setReportDetails("Помилка при завантаженні деталей доповіді");
     }
   };
 
-// Filter reports based on search term
+  const handleReportCompleted = async () => {
+    if (!selectedReport) return; // Якщо доповідь не вибрана, вийти
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/reports/${selectedReport}/done`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to mark report as done');
+      }
+
+      setReportCompleted(true); // Оновити стан після успішного запиту
+      // Оновити список доповідей, щоб відобразити зміни
+      fetchReports();
+    } catch (error) {
+      console.error('Error marking report as done:', error);
+      setError('Failed to mark report as done. Please try again.');
+    }
+  };
+
   const filteredReports = reports.filter((report) =>
     report.reportName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) || [];
+
+  if (loading) {
+    return <div>Завантаження...</div>;
+  }
 
   return (
     <div className="reports-wrapper">
-      <div className="search-input-container"> 
-      <input
-        type="text"
-        placeholder="Пошук доповіді..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="search-input" 
+      <div className="search-input-container">
+        <input
+          type="text"
+          placeholder="Пошук доповіді..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-input"
         />
         <h2>Доповіді</h2>
-    </div>
+
+      </div>
+
       <div className="reports-container">
-        
         <div className="reports">
-        {error ? (
-          <p className="error-message">{error}</p>
-        ) : (
-          <ul>
-  {filteredReports.map((report) => (
-    <li
-      key={report.id}
-      onClick={() => handleReportClick(report.id)}
-      ref={report.id === 2 ? reportRef : null} // Using reportRef only for report with id 2
-      className={selectedReport === report.id ? "selected" : ""}
-    >
-      {report.reportName} - {report.toWhom}
-    </li>
-  ))}
-</ul>
+          {error ? (
+            <p className="error-message">{error}</p>
+          ) : (
+            <ul>
+              {filteredReports.map((report) => (
+                <li
+                  key={report.id}
+                  onClick={() => handleReportClick(report.id)}
+                  ref={report.id === 2 ? reportRef : null}
+                  className={selectedReport === report.id ? "selected" : ""}
+                >
+                  {report.reportName} - {report.toWhom}
+                </li>
+              ))}
+            </ul>
 
-        )}
-      </div>
+          )}
+        </div>
 
-      <div className="reports-details">
-        {reportDetails ? (
-          <p>{reportDetails}</p>
-        ) : (
-          <p>Оберіть доповідь.</p>
-        )}
-      </div>
+        <div className="reports-details">
+          {reportDetails ? (
+            <div>
+              <p>{reportDetails}</p>
+              <div className="report-completed">
+                {!reportCompleted && (
+                  <button onClick={handleReportCompleted}>Виконано</button>
+                )}
+                {reportCompleted && <p>Доповідь виконано!</p>}
+              </div>
+            </div>
+          ) : (
+            <p>Оберіть доповідь для перегляду деталей</p>
+          )}
+        </div>
       </div>
     </div>
   );

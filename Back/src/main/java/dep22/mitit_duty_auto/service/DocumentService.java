@@ -3,7 +3,9 @@ package dep22.mitit_duty_auto.service;
 import dep22.mitit_duty_auto.dto.DocumentDto;
 import dep22.mitit_duty_auto.entities.Document;
 import dep22.mitit_duty_auto.entities.enums.TypeOfDocument;
+import dep22.mitit_duty_auto.entities.security.Roles;
 import dep22.mitit_duty_auto.repos.DocumentRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,7 +13,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -22,31 +31,47 @@ public class DocumentService {
 
     private static final String UPLOAD_DIR = "uploads/";
 
-    public DocumentDto saveDocument(MultipartFile file) throws IOException {
+    public DocumentDto saveDocument(MultipartFile file, TypeOfDocument typeOfDocument, String createBy, String sendTo) throws IOException {
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("Файл пустий. Будьласка, виберіть документ.");
+            throw new IllegalArgumentException("Файл пустий. Будь ласка, оберіть документ.");
         }
 
-        String documentName = file.getOriginalFilename();
-        String documentPath = UPLOAD_DIR + documentName;
+        // Очистка назви файлу
+        String originalFileName = file.getOriginalFilename();
+        String cleanFileName = originalFileName.replaceAll("[^a-zA-Zа-яА-ЯёЁїЇіІєЄґҐ0-9\\.\\-]", "_");
 
-        new File(UPLOAD_DIR).mkdirs();
 
-        file.transferTo(new File(documentPath));
+        // Генерація унікального імені
+        String uniqueFileName = System.currentTimeMillis() + "_" + cleanFileName;
+
+        // Створення директорії для типу документа
+        File uploadDir = new File(UPLOAD_DIR + "/" + typeOfDocument.name()); // Папка для типу документа
+        if (!uploadDir.exists() && !uploadDir.mkdirs()) {
+            throw new IOException("Не вдалося створити директорію для завантаження файлів: " + uploadDir.getAbsolutePath());
+        }
+
+        // Повний шлях для збереження файлу
+        String documentPath = uploadDir.getAbsolutePath() + "/" + uniqueFileName;
+
+        // Збереження файлу
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, Paths.get(documentPath), StandardCopyOption.REPLACE_EXISTING);
+        }
 
         Document documentEntity = new Document(
-                documentName,
-                getTypeOfDocument(documentName),
+                cleanFileName,
+                typeOfDocument,
                 documentPath,
                 false,
                 new Date(),
                 null,
-                "currentUser",
-                "receiverUser"
+                createBy,  // Передаем Roles напрямую
+                sendTo   // Передаем Roles напрямую
         );
 
         documentEntity = documentRepository.save(documentEntity);
 
+        // Підготовка DTO для відповіді
         DocumentDto documentDto = new DocumentDto();
         documentDto.setId(documentEntity.getId());
         documentDto.setTitle(documentEntity.getTitle());
@@ -58,10 +83,11 @@ public class DocumentService {
         documentDto.setCreateBy(documentEntity.getCreateBy());
         documentDto.setSendTo(documentEntity.getSendTo());
 
-        log.info("Документ успішно завантажений: {}", documentDto);
+        log.info("Документ успішно збережено: {}", documentDto);
 
         return documentDto;
     }
+
 
     private TypeOfDocument getTypeOfDocument(String fileName) {
         if (fileName.toLowerCase().endsWith(".docx") || fileName.toLowerCase().endsWith(".doc")) {
@@ -82,5 +108,52 @@ public class DocumentService {
         document.setSendDate(new Date());
 
         return documentRepository.save(document);
+    }
+
+    public List<DocumentDto> getAllDocuments(Roles sendTo) {
+//
+//        try {
+//            Roles sendToRole = Roles.valueOf(sendTo); // Преобразуем String в Roles
+//            return documentService.getAllDocuments(sendToRole); // Передаем Roles в сервис
+//        } catch (IllegalArgumentException e) {
+//            // Обрабатываем ошибку, если sendTo не является допустимым значением Roles
+//            log.error("Invalid sendTo value: {}", sendTo);
+//            return Collections.emptyList(); // Или возвращаем соответствующий HTTP ответ с ошибкой
+//        }
+        List<Document> documents = documentRepository.findBySendTo(sendTo);
+
+
+        List<Document> sortedDocuments = documents.stream()
+                .sorted(Comparator.comparing(Document::isRead))
+                .collect(Collectors.toList());
+
+
+        List<DocumentDto> documentDtos = sortedDocuments.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+
+        return documentDtos;
+    }
+
+    public void markAsRead(Integer id) {
+        Document document = documentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Документ не знайдено"));
+
+        document.setRead(true);
+        documentRepository.save(document);
+    }
+
+    private DocumentDto convertToDto(Document document) {
+        DocumentDto dto = new DocumentDto();
+        dto.setId(document.getId());
+        dto.setTitle(document.getTitle());
+        dto.setTypeOfDocument(document.getTypeOfDocument());
+        dto.setPath(document.getPath());
+        dto.setRead(document.isRead());
+        dto.setSendDate(document.getSendDate());
+        dto.setReadDate(document.getReadDate());
+        dto.setCreateBy(document.getCreateBy());
+        dto.setSendTo(document.getSendTo());
+        return dto;
     }
 }
