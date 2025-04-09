@@ -7,7 +7,6 @@ deploy_job:
     - runner
 
   script:
-    - ansible-playbook -i inventory.ini show_time.yml 
-  variables:
-    SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
+    - ansible-playbook -i inventory.ini --private_key ~/.ssh/id_rsa show_time.yml 
+  
     
