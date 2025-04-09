@@ -1,25 +1,18 @@
 stages:
-  - stage_build
-  - stage_test
-  - stage_deploy
+  - test
 
-build_job:
-    stage: stage_build
-    tags: [my_runner]
-    script:
-        - echo "default image"
-
-test_job: 
-    stage: stage_test
-    tags: [my_runner]
-    image:
-        name: hashicorp/terraform:1.5
-        entrypoint: [""]
-    script:
-        - echo "terraform image"
-        - terraform -version
-
-deploy_job:
-    stage: stage_deploy
-    script:
-        - echo "default image"
+test_time_job:
+  stage: test
+  tags:
+    - master-docker
+  image: python:3.9-slim
+  before_script:
+    - apt-get update -y
+    - apt-get install -y ansible openssh-client
+    - mkdir -p ~/.ssh
+    - echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+  script:
+    - ansible-playbook -i inventory/inventory.yml show_time.yml -u vagrant --private-key=~/.ssh/id_rsa
+  variables:
+    SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
