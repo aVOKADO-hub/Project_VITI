@@ -5,13 +5,13 @@ stages:
 
 build_job:
     stage: stage_build
-    tags: [master_runner]
+    tags: [my_runner]
     script:
         - echo "default image"
 
 test_job: 
     stage: stage_test
-    tags: [master_runner]
+    tags: [my_runner]
     image:
         name: hashicorp/terraform:1.5
         entrypoint: [""]
