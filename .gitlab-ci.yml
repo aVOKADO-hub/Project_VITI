@@ -1,11 +1,11 @@
 stages:
-  - test
+  - deploy
 
-test_time_job:
-  stage: test
+deploy_job:
+  stage: deploy
   tags:
     - runner
-  image: python:3.9-slim
+  # Видалено image: python:3.9-slim, оскільки не потрібен для shell
   before_script:
     - apt-get update -y
     - apt-get install -y ansible openssh-client
@@ -13,8 +13,6 @@ test_time_job:
     - echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
   script:
-    - ansible-playbook -i inventory/inventory.yml node01 show_time.yml -u vagrant --private-key=~/.ssh/id_rsa
+    - ansible-playbook -i inventory/inventory.yml docker_postgre_install.yml -u vagrant --private-key=~/.ssh/id_rsa
   variables:
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
-    
-    
