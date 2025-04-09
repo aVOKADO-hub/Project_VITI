@@ -1,0 +1,25 @@
+stages:
+  - stage_build
+  - stage_test
+  - stage_deploy
+
+build_job:
+    stage: stage_build
+    tags: [master_runner]
+    script:
+        - echo "default image"
+
+test_job: 
+    stage: stage_test
+    tags: [master_runner]
+    image:
+        name: hashicorp/terraform:1.5
+        entrypoint: [""]
+    script:
+        - echo "terraform image"
+        - terraform -version
+
+deploy_job:
+    stage: stage_deploy
+    script:
+        - echo "default image"
