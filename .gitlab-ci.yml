@@ -16,3 +16,4 @@ test_time_job:
     - ansible-playbook -i inventory/inventory.yml node01 show_time.yml -u vagrant --private-key=~/.ssh/id_rsa
   variables:
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
+    
