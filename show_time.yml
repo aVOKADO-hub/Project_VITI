@@ -2,16 +2,10 @@
  - name: Display current time on hosts 
    hosts: node01 # Цільові хости (можна замінити на групу з вашого inventory, напр. 'webservers') 
    become: no # Для команди 'date' зазвичай не потрібні права root (sudo) 
-   gather_facts: no # Збір фактів не потрібен для цієї простої задачі (опціонально, пришвидшує виконання) 
+   gather_facts: yes # Збір фактів не потрібен для цієї простої задачі (опціонально, пришвидшує виконання) 
    
    tasks:
-    - name: Execute date command 
-      ansible.builtin.command: 
-        cmd: date # Команда, яку потрібно виконати на віддалених хостах 
-      register: date_output # Зберігаємо результат виконання команди у змінну 'date_output'
-    - name: Print the captured time 
-      ansible.builtin.debug: 
-        msg: "Поточний час на {{ inventory_hostname }} є: {{ date_output.stdout }}"
-       
+    - debug:
+        var: ansible_date_time
 
 
