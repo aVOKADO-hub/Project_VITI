@@ -10,6 +10,6 @@ deploy_job:
     - runner
 
   script:
-    - ansible-playbook show_time.yml -i inventory.ini  
+    - ansible-playbook show_time.yml -i inventory.ini -vvv
   
     
