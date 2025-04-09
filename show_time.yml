@@ -1,6 +1,6 @@
 --- 
  - name: Display current time on hosts 
-   hosts: localhost # Цільові хости (можна замінити на групу з вашого inventory, напр. 'webservers') 
+   hosts: node01 # Цільові хости (можна замінити на групу з вашого inventory, напр. 'webservers') 
    become: no # Для команди 'date' зазвичай не потрібні права root (sudo) 
    gather_facts: no # Збір фактів не потрібен для цієї простої задачі (опціонально, пришвидшує виконання) 
    
