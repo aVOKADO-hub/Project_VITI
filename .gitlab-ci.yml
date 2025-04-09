@@ -4,7 +4,7 @@ stages:
 test_time_job:
   stage: test
   tags:
-    - my_runner
+    - runner
   image: python:3.9-slim
   before_script:
     - apt-get update -y
