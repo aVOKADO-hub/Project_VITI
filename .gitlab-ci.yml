@@ -16,3 +16,4 @@ deploy_job:
     - ansible-playbook -i inventory/inventory.yml docker_postgre_install.yml -u vagrant --private-key=~/.ssh/id_rsa
   variables:
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
+    
