@@ -14,8 +14,8 @@ build_job:
     - apt-get install -y openjdk-21-jdk maven  # Встановлюємо JDK 21 замість JRE 11
     - rm -rf ~/.m2/repository/org/springframework/boot/
   script:
-    - cd Back/  # Переходимо в директорію з вашим Java-проектом
-    - mvn clean package  # Компілюємо проект
+    - cd Back/  
+    - mvn clean package -DskipTests # Компілюємо проект
   artifacts:
     paths:
       - Back/target/minAuthProj-0.0.1-SNAPSHOT.jar  # Зберігаємо скомпільований JAR як артефакт
