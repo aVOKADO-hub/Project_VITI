@@ -8,7 +8,6 @@ stages:
 build:
   image: docker:20.10.16
   stage: build
-  tags: runner
   services:
     - docker:20.10.16-dind
   variables:
