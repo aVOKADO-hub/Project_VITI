@@ -43,10 +43,14 @@
         state: present
       register: backend_image
 
+    - name: Debug backend_image
+      debug:
+        var: backend_image
+
     - name: Run Java backend container
       docker_container:
         name: java_backend_container
-        image: "{{ backend_image.image_id }}"
+        image: "{{ backend_image.image }}"
         state: started
         ports:
           - "8080:8080"
