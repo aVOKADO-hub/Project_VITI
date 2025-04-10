@@ -33,15 +33,23 @@
       register: jar_file
       failed_when: not jar_file.stat.exists
 
+    - name: Debug directory content
+      shell: ls -l /tmp/backend/
+      register: dir_content
+    - debug:
+        var: dir_content.stdout
+
     - name: Build Java backend Docker image
       docker_image:
         name: java_backend_image
         build:
           path: /tmp/backend/
           dockerfile: Dockerfile
+          pull: no
         source: build
         state: present
       register: backend_image
+      failed_when: backend_image.failed or backend_image.image == {}
 
     - name: Debug backend_image
       debug:
@@ -50,7 +58,7 @@
     - name: Run Java backend container
       docker_container:
         name: java_backend_container
-        image: "{{ backend_image.image }}"
+        image: "{{ backend_image.image.Id | default(omit) }}"
         state: started
         ports:
           - "8080:8080"
@@ -62,6 +70,7 @@
           SPRING_DATASOURCE_PASSWORD: "secret"
           SPRING_DATASOURCE_DRIVER: "org.postgresql.Driver"
       register: backend_container
+      when: backend_image.image.Id is defined
 
     - name: Ensure PostgreSQL container is reachable
       debug:
