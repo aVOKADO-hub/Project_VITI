@@ -5,39 +5,39 @@
   gather_facts: yes
 
   tasks:
-    - name: Ensure Docker is installed
+    - name: Install required packages
       apt:
-        name: docker.io
+        name:
+          - docker.io
+          - python3-pip
         state: present
         update_cache: yes
 
-    - name: Ensure Docker Python module is installed
+    - name: Install Docker Python module
       pip:
         name: docker
         state: present
 
-    - name: Create network for Docker containers
+    - name: Create Docker network (if not exists)
       docker_network:
         name: backend_network
         state: present
 
-    - name: Copy Dockerfile and Java project to remote host
+    - name: Copy Java project with Dockerfile to remote host
       copy:
-        src: Back/  # Шлях до директорії з Dockerfile та Java-проектом на локальному хості
+        src: Back/
         dest: /tmp/backend/
         mode: '0755'
 
-    - name: Verify JAR file exists on remote host
+    - name: Ensure JAR file exists
       stat:
         path: /tmp/backend/target/minAuthProj-0.0.1-SNAPSHOT.jar
       register: jar_file
       failed_when: not jar_file.stat.exists
 
-    - name: Debug directory content
-      shell: ls -l /tmp/backend/
-      register: dir_content
-    - debug:
-        var: dir_content.stdout
+    - name: Debug JAR presence
+      debug:
+        msg: "Found JAR: {{ jar_file.stat.exists }}"
 
     - name: Build Java backend Docker image
       docker_image:
@@ -45,20 +45,19 @@
         build:
           path: /tmp/backend/
           dockerfile: Dockerfile
-          pull: no
         source: build
-        state: absent
-      register: backend_image
-#      failed_when: backend_image.failed or backend_image.image == {}
+        force_tag: true
 
-    - name: Debug backend_image
-      debug:
-        var: backend_image
+    - name: Remove existing backend container if it exists
+      docker_container:
+        name: java_backend_container
+        state: absent
+        force_kill: true
 
     - name: Run Java backend container
       docker_container:
         name: java_backend_container
-        image: "{{ backend_image.image.Id | default(omit) }}"
+        image: java_backend_image:latest
         state: started
         ports:
           - "8080:8080"
@@ -69,18 +68,5 @@
           SPRING_DATASOURCE_USERNAME: "myuser"
           SPRING_DATASOURCE_PASSWORD: "secret"
           SPRING_DATASOURCE_DRIVER: "org.postgresql.Driver"
-      register: backend_container
-      when: backend_image.image.Id is defined
 
-    # - name: Ensure PostgreSQL container is reachable
-    #   debug:
-    #     msg: "Java backend is running and connected to PostgreSQL at {{ SPRING_DATASOURCE_URL }}"
-
-    - name: Check if backend container is running
-      shell: docker ps -a | grep java_backend_container
-      register: container_status
-      failed_when: container_status.rc != 0
-
-    - name: Output container status
-      debug:
-        var: container_status.stdout
+    - name: Check if

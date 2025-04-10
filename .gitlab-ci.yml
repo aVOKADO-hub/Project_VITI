@@ -1,35 +1,48 @@
 variables:
   DEBIAN_FRONTEND: noninteractive
+  MAVEN_CLI_OPTS: "-s settings.xml --batch-mode"
 
 stages:
   - build
   - deploy
 
+# Оновлений крок для побудови, з кешем залежностей
 build_job:
   stage: build
   tags:
     - runner
   before_script:
+    # Використовуємо кеш для Maven
     - apt-get update 
     - apt-get install -y openjdk-21-jdk maven
+    # Очищаємо кеш Maven, щоб уникнути застарілих залежностей
     - rm -rf ~/.m2/repository/org/springframework/boot/
   script:
     - cd Back/
+    # Використовуємо кеш для Maven, щоб уникнути повторного завантаження залежностей
     - mvn clean package -DskipTests
   artifacts:
     paths:
       - Back/target/minAuthProj-0.0.1-SNAPSHOT.jar
     expire_in: 1 day
+  cache:
+    paths:
+      - ~/.m2/repository/
 
 deploy_job:
   stage: deploy
   tags:
     - runner
   before_script:
+    # Оновлюємо залежності для Docker і Ansible (тільки при першому використанні)
     - apt-get update && apt-get install -y docker.io ansible python3-pip
     - pip3 install docker
   script:
-    - ansible-playbook deploy-backend.yml -i inventory.ini 
-    #-v -e imagetag=comithash
+    - ansible-playbook deploy-backend.yml -i inventory.ini
   dependencies:
     - build_job
+  cache:
+    key: deploy_cache
+    paths:
+      - /root/.cache/pip  # кеш для Python пакетів (pip)
+      - /root/.ansible/  # кеш для Ansible
