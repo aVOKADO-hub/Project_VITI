@@ -16,7 +16,7 @@ build:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
   before_script:
-    - apk add --no-cache bash curl  # Використовуйте apk для Alpine
+    - apk add --no-cache bash curl  
   script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - docker build -t $IMAGE_TAG Back/
