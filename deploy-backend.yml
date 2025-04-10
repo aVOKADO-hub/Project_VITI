@@ -47,7 +47,7 @@
           dockerfile: Dockerfile
           pull: no
         source: build
-        force_tag: true
+        state: absent
       register: backend_image
 #      failed_when: backend_image.failed or backend_image.image == {}
 
