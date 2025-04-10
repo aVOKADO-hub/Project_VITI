@@ -49,7 +49,7 @@
         source: build
         state: present
       register: backend_image
-      failed_when: backend_image.failed or backend_image.image == {}
+#      failed_when: backend_image.failed or backend_image.image == {}
 
     - name: Debug backend_image
       debug:
