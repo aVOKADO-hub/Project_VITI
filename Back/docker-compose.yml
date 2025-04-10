@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  app:
+    image: "${REGISTRY_IMAGE}:${IMAGE_TAG}"
+    ports:
+      - "8080:8080"
+    networks:
+      - backend_network
+    env_file:
+      - .env
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${MYSQL_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - backend_network
+networks:
+  backend_network:
+    driver: bridge

@@ -1,48 +1,82 @@
 variables:
   DEBIAN_FRONTEND: noninteractive
   MAVEN_CLI_OPTS: "-s settings.xml --batch-mode"
+  IMAGE_TAG: "$CI_REGISTRY_IMAGE/min-auth-proj:$CI_COMMIT_SHORT_SHA"  # Унікальний тег
 
 stages:
   - build
   - deploy
 
-# Оновлений крок для побудови, з кешем залежностей
+# Етап побудови Docker-образа
 build_job:
   stage: build
-  tags:
-    - runner
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
   before_script:
-    # Використовуємо кеш для Maven
-    - apt-get update 
-    - apt-get install -y openjdk-21-jdk maven
-    # Очищаємо кеш Maven, щоб уникнути застарілих залежностей
-    - rm -rf ~/.m2/repository/org/springframework/boot/
+    - apk add --no-cache bash curl
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   script:
-    - cd Back/
-    # Використовуємо кеш для Maven, щоб уникнути повторного завантаження залежностей
-    - mvn clean package -DskipTests
-  artifacts:
-    paths:
-      - Back/target/minAuthProj-0.0.1-SNAPSHOT.jar
-    expire_in: 1 day
+    - docker build -t "$IMAGE_TAG" Back/
+    - docker push "$IMAGE_TAG"
   cache:
     paths:
       - ~/.m2/repository/
 
+# Етап розгортання з Docker Compose
 deploy_job:
   stage: deploy
   tags:
     - runner
+  needs:
+    - job: build_job
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_success
+  variables:
+    DB_URL: "$DB_URL"
+    DB_USER: "$DB_USER"
+    DB_PASSWORD: "$DB_PASSWORD"
+    MYSQL_DATABASE: "$MYSQL_DATABASE"
+    MYSQL_ROOT_PASSWORD: "$MYSQL_ROOT_PASSWORD"
+    MAIL_HOST: "$MAIL_HOST"
+    MAIL_PORT: "$MAIL_PORT"
+    MAIL_USERNAME: "$MAIL_USERNAME"
+    MAIL_PASSWORD: "$MAIL_PASSWORD"
+    IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
+    REGISTRY_IMAGE: "$CI_REGISTRY_IMAGE/min-auth-proj"
+    ANSIBLE_REPO_URL: 'https://gitlab.com/aVOKADO-hub/ansible_repo.git'
+    ANSIBLE_CLONE_DIR: ansible_repo
+    SSH_PRIVATE_KEY: "$SSH_PRIVATE_KEY"
   before_script:
-    # Оновлюємо залежності для Docker і Ansible (тільки при першому використанні)
-    - apt-get update && apt-get install -y docker.io ansible python3-pip
-    - pip3 install docker
+    - apt-get update && apt-get install -y openssh-client git ansible
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ansible
+    - chmod 600 ~/.ssh/id_ansible
+    - export ANSIBLE_HOST_KEY_CHECKING=False
+    - git clone "$ANSIBLE_REPO_URL" "$ANSIBLE_CLONE_DIR"
   script:
-    - ansible-playbook deploy-backend.yml -i inventory.ini
-  dependencies:
-    - build_job
+    - ansible-playbook -i "$ANSIBLE_CLONE_DIR/inventory.ini" "$ANSIBLE_CLONE_DIR/deploy_docker.yml" \
+      -e "registry_image=$REGISTRY_IMAGE" \
+      -e "image_tag=$IMAGE_TAG" \
+      -e "gitlab_db_url=$DB_URL" \
+      -e "gitlab_db_user=$DB_USER" \
+      -e "gitlab_db_password=$DB_PASSWORD" \
+      -e "gitlab_mysql_database=$MYSQL_DATABASE" \
+      -e "gitlab_mysql_root_password=$MYSQL_ROOT_PASSWORD" \
+      -e "gitlab_mail_host=$MAIL_HOST" \
+      -e "gitlab_mail_port=$MAIL_PORT" \
+      -e "gitlab_mail_username=$MAIL_USERNAME" \
+      -e "gitlab_mail_password=$MAIL_PASSWORD"
+  after_script:
+    - rm -f ~/.ssh/id_ansible
+    - rm -rf "$ANSIBLE_CLONE_DIR"
   cache:
-    key: deploy_cache
     paths:
-      - /root/.cache/pip  # кеш для Python пакетів (pip)
-      - /root/.ansible/  # кеш для Ansible
+      - ~/.cache/pip
+      - ~/.ansible/

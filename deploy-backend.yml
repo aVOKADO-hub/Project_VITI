@@ -1,72 +1,85 @@
----
-- name: Deploy Java backend and connect to PostgreSQL
+- name: Deploy Java backend and connect to PostgreSQL with Docker Compose
   hosts: deploy_servers
   become: yes
   gather_facts: yes
+  vars:
+    deploy_dir: "/opt/min-auth-proj"
+    compose_file_src: "docker-compose.yml"
+    compose_file_dest: "{{ deploy_dir }}/docker-compose.yml"
+    env_template_src: ".env.j2"
+    env_file_dest: "{{ deploy_dir }}/.env"
 
   tasks:
     - name: Install required packages
       apt:
         name:
-          - docker.io
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
           - python3-pip
         state: present
         update_cache: yes
 
-    - name: Install Docker Python module
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Install Docker Engine
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+
+    - name: Install Docker Compose plugin
+      apt:
+        name: docker-compose-plugin
+        state: present
+
+    - name: Install Docker Python SDK
       pip:
         name: docker
         state: present
 
-    - name: Create Docker network (if not exists)
-      docker_network:
-        name: backend_network
-        state: present
+    - name: Start Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
 
-    - name: Copy Java project with Dockerfile to remote host
-      copy:
-        src: Back/
-        dest: /tmp/backend/
+    - name: Create deployment directory
+      file:
+        path: "{{ deploy_dir }}"
+        state: directory
         mode: '0755'
 
-    - name: Ensure JAR file exists
-      stat:
-        path: /tmp/backend/target/minAuthProj-0.0.1-SNAPSHOT.jar
-      register: jar_file
-      failed_when: not jar_file.stat.exists
+    - name: Copy docker-compose.yml
+      copy:
+        src: "{{ compose_file_src }}"
+        dest: "{{ compose_file_dest }}"
+        mode: '0644'
 
-    - name: Debug JAR presence
-      debug:
-        msg: "Found JAR: {{ jar_file.stat.exists }}"
+    - name: Generate .env file from template
+      template:
+        src: "{{ env_template_src }}"
+        dest: "{{ env_file_dest }}"
+        mode: '0640'
+        force: yes
 
-    - name: Build Java backend Docker image
-      docker_image:
-        name: java_backend_image
-        build:
-          path: /tmp/backend/
-          dockerfile: Dockerfile
-        source: build
-        force_tag: true
-
-    - name: Remove existing backend container if it exists
-      docker_container:
-        name: java_backend_container
-        state: absent
-        force_kill: true
-
-    - name: Run Java backend container
-      docker_container:
-        name: java_backend_container
-        image: java_backend_image:latest
-        state: started
-        ports:
-          - "8080:8080"
-        networks:
-          - name: backend_network
-        env:
-          SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres_db:5432/mydatabase"
-          SPRING_DATASOURCE_USERNAME: "myuser"
-          SPRING_DATASOURCE_PASSWORD: "secret"
-          SPRING_DATASOURCE_DRIVER: "org.postgresql.Driver"
-
-    - name: Check if
+    - name: Deploy application with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ deploy_dir }}"
+        state: present
+        env_files:
+          - "{{ env_file_dest }}"
+        pull: yes  # Завантажуємо оновлений образ
