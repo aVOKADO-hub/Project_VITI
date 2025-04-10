@@ -30,7 +30,7 @@ deploy_job:
   needs:
     - job: build_job
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success
   variables:
     DB_URL: "$DB_URL"
