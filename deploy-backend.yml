@@ -72,9 +72,9 @@
       register: backend_container
       when: backend_image.image.Id is defined
 
-    - name: Ensure PostgreSQL container is reachable
-      debug:
-        msg: "Java backend is running and connected to PostgreSQL at {{ SPRING_DATASOURCE_URL }}"
+    # - name: Ensure PostgreSQL container is reachable
+    #   debug:
+    #     msg: "Java backend is running and connected to PostgreSQL at {{ SPRING_DATASOURCE_URL }}"
 
     - name: Check if backend container is running
       shell: docker ps -a | grep java_backend_container
