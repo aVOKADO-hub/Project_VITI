@@ -1,34 +1,22 @@
 variables:
   DEBIAN_FRONTEND: noninteractive
+  IMAGE_TAG: "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
 
 stages:
   - build
-  - deploy
 
-build_job:
+build:
+  image: docker:20.10.16
   stage: build
-  tags:
-    - runner
+  tags: runner
+  services:
+    - docker:20.10.16-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
   before_script:
-    - apt-get update 
-    - apt-get install -y openjdk-21-jdk maven  # Встановлюємо JDK 21 замість JRE 11
-    - rm -rf ~/.m2/repository/org/springframework/boot/
+    - apk add --no-cache bash curl
   script:
-    - cd Back/  
-    - mvn clean package -DskipTests # Компілюємо проект
-  artifacts:
-    paths:
-      - Back/target/minAuthProj-0.0.1-SNAPSHOT.jar  # Зберігаємо скомпільований JAR як артефакт
-    expire_in: 1 day  # Артефакт зберігається 1 день
-
-deploy_job:
-  stage: deploy
-  tags:
-    - runner
-  before_script:
-    - apt-get update && apt-get install -y docker.io ansible python3-pip
-    - pip3 install docker
-  script:
-    - ansible-playbook deploy-backend.yml -i inventory.ini -v -e imagetag=comithash
-  dependencies:
-    - build_job  # Залежність від етапу build, щоб отримати артефакт
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - docker build -t $IMAGE_TAG Back/  # Будуємо з директорії Back/
+    - docker push $IMAGE_TAG
