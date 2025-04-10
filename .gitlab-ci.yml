@@ -9,6 +9,7 @@ stages:
 build:
   image: docker:20.10.16
   stage: build
+  tags: runner
   services:
     - docker:20.10.16-dind
   variables:
@@ -20,7 +21,7 @@ build:
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
     - docker build -t $IMAGE_TAG .
     - docker push $IMAGE_TAG
-    
+
   # artifacts:
   #   paths:
   #     - Back/target/minAuthProj-0.0.1-SNAPSHOT.jar  # Зберігаємо JAR на випадок, якщо потрібно для deploy
