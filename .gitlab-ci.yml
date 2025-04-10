@@ -10,7 +10,9 @@ build_job:
   tags:
     - runner
   before_script:
-    - apt-get update && apt-get install -y maven openjdk-11-jre
+    - apt-get update 
+    - apt-get install -y openjdk-21-jdk maven  # Встановлюємо JDK 21 замість JRE 11
+    - rm -rf ~/.m2/repository/org/springframework/boot/
   script:
     - cd Back/  # Переходимо в директорію з вашим Java-проектом
     - mvn clean package  # Компілюємо проект
