@@ -29,6 +29,6 @@ deploy_job:
     - apt-get update && apt-get install -y docker.io ansible python3-pip
     - pip3 install docker
   script:
-    - ansible-playbook deploy_backend.yml -i inventory.ini -v
+    - ansible-playbook deploy-backend.yml -i inventory.ini -v
   dependencies:
     - build_job  # Залежність від етапу build, щоб отримати артефакт
