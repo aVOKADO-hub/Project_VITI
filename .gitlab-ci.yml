@@ -1,33 +1,28 @@
 variables:
   DEBIAN_FRONTEND: noninteractive
   MAVEN_CLI_OPTS: "-s settings.xml --batch-mode"
-  IMAGE_TAG: "$CI_REGISTRY_IMAGE/min-auth-proj:$CI_COMMIT_SHORT_SHA"  # Унікальний тег
+  IMAGE_TAG: "$CI_REGISTRY_IMAGE/min-auth-proj:$CI_COMMIT_SHORT_SHA"
 
 stages:
   - build
   - deploy
 
-# Етап побудови Docker-образа
 build_job:
   stage: build
-  image: docker:latest
-  services:
-    - docker:dind
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_DRIVER: overlay2
+  tags:
+    - runner
   before_script:
-    # - apk add --no-cache bash curl
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - apt-get update
+    - apt-get install -y openjdk-21-jdk maven docker.io
+    - rm -rf ~/.m2/repository/org/springframework/boot/
   script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - docker build -t "$IMAGE_TAG" Back/
     - docker push "$IMAGE_TAG"
   cache:
     paths:
       - ~/.m2/repository/
 
-# Етап розгортання з Docker Compose
 deploy_job:
   stage: deploy
   tags:
@@ -41,8 +36,6 @@ deploy_job:
     DB_URL: "$DB_URL"
     DB_USER: "$DB_USER"
     DB_PASSWORD: "$DB_PASSWORD"
-    MYSQL_DATABASE: "$MYSQL_DATABASE"
-    MYSQL_ROOT_PASSWORD: "$MYSQL_ROOT_PASSWORD"
     MAIL_HOST: "$MAIL_HOST"
     MAIL_PORT: "$MAIL_PORT"
     MAIL_USERNAME: "$MAIL_USERNAME"
@@ -67,8 +60,6 @@ deploy_job:
       -e "gitlab_db_url=$DB_URL" \
       -e "gitlab_db_user=$DB_USER" \
       -e "gitlab_db_password=$DB_PASSWORD" \
-      -e "gitlab_mysql_database=$MYSQL_DATABASE" \
-      -e "gitlab_mysql_root_password=$MYSQL_ROOT_PASSWORD" \
       -e "gitlab_mail_host=$MAIL_HOST" \
       -e "gitlab_mail_port=$MAIL_PORT" \
       -e "gitlab_mail_username=$MAIL_USERNAME" \
