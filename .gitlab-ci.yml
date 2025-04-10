@@ -2,16 +2,31 @@ variables:
   DEBIAN_FRONTEND: noninteractive
 
 stages:
+  - build
   - deploy
+
+build_job:
+  stage: build
+  tags:
+    - runner
+  before_script:
+    - apt-get update && apt-get install -y maven openjdk-11-jre
+  script:
+    - cd Back/  # Переходимо в директорію з вашим Java-проектом
+    - mvn clean package  # Компілюємо проект
+  artifacts:
+    paths:
+      - Back/target/minAuthProj-0.0.1-SNAPSHOT.jar  # Зберігаємо скомпільований JAR як артефакт
+    expire_in: 1 day  # Артефакт зберігається 1 день
 
 deploy_job:
   stage: deploy
   tags:
     - runner
-
   before_script:
     - apt-get update && apt-get install -y docker.io ansible python3-pip
     - pip3 install docker
-
   script:
-    - ansible-playbook deploy-backend.yml -i inventory.ini -v
+    - ansible-playbook deploy_backend.yml -i inventory.ini -v
+  dependencies:
+    - build_job  # Залежність від етапу build, щоб отримати артефакт

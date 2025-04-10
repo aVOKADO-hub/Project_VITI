@@ -23,9 +23,15 @@
 
     - name: Copy Dockerfile and Java project to remote host
       copy:
-        src: ./Back/  # Шлях до директорії з Dockerfile та Java-проектом на локальному хості
+        src: Back/  # Шлях до директорії з Dockerfile та Java-проектом на локальному хості
         dest: /tmp/backend/
         mode: '0755'
+
+    - name: Verify JAR file exists on remote host
+      stat:
+        path: /tmp/backend/target/minAuthProj-0.0.1-SNAPSHOT.jar
+      register: jar_file
+      failed_when: not jar_file.stat.exists
 
     - name: Build Java backend Docker image
       docker_image:
