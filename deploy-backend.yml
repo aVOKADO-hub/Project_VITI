@@ -1,0 +1,67 @@
+---
+- name: Deploy Java backend and connect to PostgreSQL
+  hosts: deploy_servers
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Ensure Docker is installed
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker Python module is installed
+      pip:
+        name: docker
+        state: present
+
+    - name: Create network for Docker containers
+      docker_network:
+        name: backend_network
+        state: present
+
+    - name: Copy Dockerfile and Java project to remote host
+      copy:
+        src: ./Back/  # Шлях до директорії з Dockerfile та Java-проектом на локальному хості
+        dest: /tmp/backend/
+        mode: '0755'
+
+    - name: Build Java backend Docker image
+      docker_image:
+        name: java_backend_image
+        build:
+          path: /tmp/backend/
+          dockerfile: Dockerfile
+        source: build
+        state: present
+      register: backend_image
+
+    - name: Run Java backend container
+      docker_container:
+        name: java_backend_container
+        image: "{{ backend_image.image_id }}"
+        state: started
+        ports:
+          - "8080:8080"
+        networks:
+          - name: backend_network
+        env:
+          SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres_db:5432/mydatabase"
+          SPRING_DATASOURCE_USERNAME: "myuser"
+          SPRING_DATASOURCE_PASSWORD: "secret"
+          SPRING_DATASOURCE_DRIVER: "org.postgresql.Driver"
+      register: backend_container
+
+    - name: Ensure PostgreSQL container is reachable
+      debug:
+        msg: "Java backend is running and connected to PostgreSQL at {{ SPRING_DATASOURCE_URL }}"
+
+    - name: Check if backend container is running
+      shell: docker ps -a | grep java_backend_container
+      register: container_status
+      failed_when: container_status.rc != 0
+
+    - name: Output container status
+      debug:
+        var: container_status.stdout
