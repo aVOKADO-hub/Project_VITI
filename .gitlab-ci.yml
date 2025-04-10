@@ -14,4 +14,4 @@ deploy_job:
     - pip3 install docker
 
   script:
-    - ansible-playbook deploy_backend.yml -i inventory.ini -v
+    - ansible-playbook deploy-backend.yml -i inventory.ini -v
