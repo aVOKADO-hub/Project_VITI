@@ -76,9 +76,14 @@
         mode: '0640'
         force: yes
 
-    - name: Deploy application with Docker Compose
-      community.docker.docker_compose_v2:
-        project_src: "{{ deploy_dir }}"
-        state: present
-        env_files:
-          - "{{ env_file_dest }}"
+    # - name: Deploy application with Docker Compose
+    #   community.docker.docker_compose_v2:
+    #     project_src: "{{ deploy_dir }}"
+    #     state: present
+    #     env_files:
+    #       - "{{ env_file_dest }}"
+
+    - name: This command will change the working directory to somedir/
+      ansible.builtin.shell:
+        cmd: docker compose up -d
+        chdir: "{{ deploy_dir }}"
