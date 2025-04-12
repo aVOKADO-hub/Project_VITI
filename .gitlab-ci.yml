@@ -53,9 +53,9 @@ deploy_job:
     IdentitiesOnly yes" > ~/.ssh/config
   - chmod 600 ~/.ssh/config
   - export ANSIBLE_HOST_KEY_CHECKING=False
-  # 👇 Дебаг: перевіряємо перші кілька рядків ключа
+  #  Дебаг: перевіряємо перші кілька рядків ключа
   - echo "🔐 Private key begins with:" && head -n 3 ~/.ssh/id_ansible
-  # 👇 Дебаг: детальне SSH-з'єднання з GitLab
+  #  Дебаг: детальне SSH-з'єднання з GitLab
   - echo "🔍 SSH debug test:" && ssh -vT git@gitlab.com || echo "🚫 SSH connection failed"
 
 
