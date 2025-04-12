@@ -48,7 +48,12 @@ deploy_job:
 
     # Проверка существования директории ansible_repo и клонирование/обновление
     - echo "Проверка существования директории ansible_repo..."
-    - if [ -d "$ANSIBLE_CLONE_DIR" ]; then echo "Директория уже существует, выполняем git pull..."; cd "$ANSIBLE_CLONE_DIR" && git pull; else echo "Клонируем репозиторий..."; git clone "$ANSIBLE_REPO_URL" "$ANSIBLE_CLONE_DIR"; fi
+    - if [ -d "$ANSIBLE_CLONE_DIR" ]; then echo "Директория уже существует, выполняем git pull..."; 
+    cd "$ANSIBLE_CLONE_DIR" && git pull; 
+    # ssh -vT git@gitlab.com
+
+    # else echo "Клонируем репозиторий..."; 
+    # git clone "$ANSIBLE_REPO_URL" "$ANSIBLE_CLONE_DIR"; fi
 
     # Проверка содержимого клонированной папки
     - echo "Проверка содержимого клонированной папки..."
