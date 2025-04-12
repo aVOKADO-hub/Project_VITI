@@ -38,7 +38,7 @@ deploy_job:
     IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
     REGISTRY_IMAGE: "$CI_REGISTRY_IMAGE/min-auth-proj"
     ANSIBLE_REPO_URL: 'https://gitlab.com/aVOKADO-hub/ansible_repo.git'
-    ANSIBLE_CLONE_DIR: /opt/min-auth-proj
+    ANSIBLE_CLONE_DIR: ansible_repo
     SSH_PRIVATE_KEY: "$SSH_PRIVATE_KEY"
   before_script:
     - apt-get update && apt-get install -y openssh-client git ansible
@@ -46,8 +46,16 @@ deploy_job:
     - chmod 700 ~/.ssh
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ansible
     - chmod 600 ~/.ssh/id_ansible
+    - echo "Host gitlab.com
+        HostName gitlab.com
+        User git
+        IdentityFile ~/.ssh/id_ansible
+        IdentitiesOnly yes" > ~/.ssh/config
+    - chmod 600 ~/.ssh/config
     - export ANSIBLE_HOST_KEY_CHECKING=False
+    - ssh -T git@gitlab.com || echo "SSH connection failed"
     - git clone "$ANSIBLE_REPO_URL" "$ANSIBLE_CLONE_DIR"
+
   script:
     - ansible-playbook -i "$ANSIBLE_CLONE_DIR/inventory.ini" "$ANSIBLE_CLONE_DIR/deploy_docker.yml" \
       -e "registry_image=$REGISTRY_IMAGE" \
