@@ -1,6 +1,5 @@
 variables:
   DEBIAN_FRONTEND: noninteractive
-  MAVEN_CLI_OPTS: "-s settings.xml --batch-mode"
   IMAGE_TAG: "$CI_REGISTRY_IMAGE/min-auth-proj:$CI_COMMIT_SHORT_SHA"
 
 stages:
@@ -36,10 +35,6 @@ deploy_job:
     DB_URL: "$DB_URL"
     DB_USER: "$DB_USER"
     DB_PASSWORD: "$DB_PASSWORD"
-    MAIL_HOST: "$MAIL_HOST"
-    MAIL_PORT: "$MAIL_PORT"
-    MAIL_USERNAME: "$MAIL_USERNAME"
-    MAIL_PASSWORD: "$MAIL_PASSWORD"
     IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
     REGISTRY_IMAGE: "$CI_REGISTRY_IMAGE/min-auth-proj"
     ANSIBLE_REPO_URL: 'https://gitlab.com/aVOKADO-hub/ansible_repo.git'
@@ -60,10 +55,6 @@ deploy_job:
       -e "gitlab_db_url=$DB_URL" \
       -e "gitlab_db_user=$DB_USER" \
       -e "gitlab_db_password=$DB_PASSWORD" \
-      -e "gitlab_mail_host=$MAIL_HOST" \
-      -e "gitlab_mail_port=$MAIL_PORT" \
-      -e "gitlab_mail_username=$MAIL_USERNAME" \
-      -e "gitlab_mail_password=$MAIL_PASSWORD"
   after_script:
     - rm -f ~/.ssh/id_ansible
     - rm -rf "$ANSIBLE_CLONE_DIR"
