@@ -61,15 +61,12 @@ deploy_job:
 
   script:
     - echo "Запуск Ansible Playbook для Docker-деплоя..."
-    - ansible-playbook -i "inventory.ini" "deploy_backend.yml" \
+    - pwd
+    - ls -l
+    - ansible-playbook -i "inventory.ini" "deploy-backend.yml " \
       -e "registry_image=$REGISTRY_IMAGE" \
       -e "image_tag=$IMAGE_TAG" \
       -e "gitlab_db_url=$DB_URL" \
       -e "gitlab_db_user=$DB_USER" \
       -e "gitlab_db_password=$DB_PASSWORD" \
-      -e "gitlab_mysql_database=$MYSQL_DATABASE" \
-      -e "gitlab_mysql_root_password=$MYSQL_ROOT_PASSWORD" \
-      -e "gitlab_mail_host=$MAIL_HOST" \
-      -e "gitlab_mail_port=$MAIL_PORT" \
-      -e "gitlab_mail_username=$MAIL_USERNAME" \
-      -e "gitlab_mail_password=$MAIL_PASSWORD"
+      -e "gitlab_my_database=$DB_NAME" \
