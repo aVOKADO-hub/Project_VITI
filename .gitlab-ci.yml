@@ -63,7 +63,7 @@ deploy_job:
     - echo "Запуск Ansible Playbook для Docker-деплоя..."
     - pwd
     - ls -l
-    - ansible-playbook -i "inventory.ini" "deploy-backend.yml " \
+    - ansible-playbook -i inventory.ini deploy-backend.yml \
       -e "registry_image=$REGISTRY_IMAGE" \
       -e "image_tag=$IMAGE_TAG" \
       -e "gitlab_db_url=$DB_URL" \
