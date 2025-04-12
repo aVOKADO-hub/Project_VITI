@@ -61,7 +61,7 @@ deploy_job:
 
   script:
     - echo "Запуск Ansible Playbook для Docker-деплоя..."
-    - ansible-playbook -i "$ANSIBLE_CLONE_DIR/inventory.ini" "$ANSIBLE_CLONE_DIR/deploy_backend.yml" \
+    - ansible-playbook -i "inventory.ini" "deploy_backend.yml" \
       -e "registry_image=$REGISTRY_IMAGE" \
       -e "image_tag=$IMAGE_TAG" \
       -e "gitlab_db_url=$DB_URL" \
