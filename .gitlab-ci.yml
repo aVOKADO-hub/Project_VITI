@@ -54,7 +54,12 @@ deploy_job:
   - chmod 600 ~/.ssh/config
   - export ANSIBLE_HOST_KEY_CHECKING=False
   #  Дебаг: перевіряємо перші кілька рядків ключа
-  - echo "🔐 Private key begins with:" && head -n 3 ~/.ssh/id_ansible
+  - printf "%s\n" "$SSH_PRIVATE_KEY" > ~/.ssh/id_ansible
+
+
+  - cat ~/.ssh/id_ansible | head -n 5
+  - ssh -v -i ~/.ssh/id_ansible git@gitlab.com || echo "🚫 SSH connection failed"
+
   #  Дебаг: детальне SSH-з'єднання з GitLab
   - echo "🔍 SSH debug test:" && ssh -vT git@gitlab.com || echo "🚫 SSH connection failed"
 
