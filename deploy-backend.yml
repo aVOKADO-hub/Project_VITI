@@ -82,4 +82,3 @@
         state: present
         env_files:
           - "{{ env_file_dest }}"
-        pull: missing
