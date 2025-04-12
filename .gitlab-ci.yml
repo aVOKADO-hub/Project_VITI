@@ -66,7 +66,10 @@ deploy_job:
 
     # Клонирование Ansible репозитория
     - echo "Клонирование Ansible репозитория в $ANSIBLE_CLONE_DIR..."
-    - git clone "$ANSIBLE_REPO_URL" "$ANSIBLE_CLONE_DIR"
+    - echo "Проверка содержимого клонированной папки..."
+    - pwd "$ANSIBLE_CLONE_DIR"
+    - ls -l "$ANSIBLE_CLONE_DIR"
+
 
   script:
     - echo "Запуск Ansible Playbook для Docker-деплоя..."
