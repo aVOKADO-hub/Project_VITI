@@ -4,7 +4,7 @@
   gather_facts: yes
   vars:
     deploy_dir: "/opt/min-auth-proj"
-    compose_file_src: "docker-compose.yml"
+    compose_file_src: "Back/docker-compose.yml"
     compose_file_dest: "{{ deploy_dir }}/docker-compose.yml"
     env_template_src: ".env.j2"
     env_file_dest: "{{ deploy_dir }}/.env"
