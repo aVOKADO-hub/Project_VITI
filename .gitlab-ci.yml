@@ -41,20 +41,23 @@ deploy_job:
     ANSIBLE_CLONE_DIR: ansible_repo
     SSH_PRIVATE_KEY: "$SSH_PRIVATE_KEY"
   before_script:
-    - apt-get update && apt-get install -y openssh-client git ansible
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ansible
-    - chmod 600 ~/.ssh/id_ansible
-    - echo "Host gitlab.com
-        HostName gitlab.com
-        User git
-        IdentityFile ~/.ssh/id_ansible
-        IdentitiesOnly yes" > ~/.ssh/config
-    - chmod 600 ~/.ssh/config
-    - export ANSIBLE_HOST_KEY_CHECKING=False
-    - ssh -T git@gitlab.com || echo "SSH connection failed"
-    - git clone "$ANSIBLE_REPO_URL" "$ANSIBLE_CLONE_DIR"
+  - apt-get update && apt-get install -y openssh-client git ansible
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ansible
+  - chmod 600 ~/.ssh/id_ansible
+  - echo "Host gitlab.com
+    HostName gitlab.com
+    User git
+    IdentityFile ~/.ssh/id_ansible
+    IdentitiesOnly yes" > ~/.ssh/config
+  - chmod 600 ~/.ssh/config
+  - export ANSIBLE_HOST_KEY_CHECKING=False
+  # 👇 Дебаг: перевіряємо перші кілька рядків ключа
+  - echo "🔐 Private key begins with:" && head -n 3 ~/.ssh/id_ansible
+  # 👇 Дебаг: детальне SSH-з'єднання з GitLab
+  - echo "🔍 SSH debug test:" && ssh -vT git@gitlab.com || echo "🚫 SSH connection failed"
+
 
   script:
     - ansible-playbook -i "$ANSIBLE_CLONE_DIR/inventory.ini" "$ANSIBLE_CLONE_DIR/deploy_docker.yml" \
