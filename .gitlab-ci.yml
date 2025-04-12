@@ -1,6 +1,12 @@
 variables:
   DEBIAN_FRONTEND: noninteractive
   IMAGE_TAG: "$CI_REGISTRY_IMAGE/min-auth-proj:$CI_COMMIT_SHORT_SHA"
+  DB_URL: "$CI_DB_URL"
+  DB_USER: "$CI_DB_USER"
+  DB_PASSWORD: "$CI_DB_PASSWORD"
+  ANSIBLE_REPO_URL: 'https://gitlab.com/aVOKADO-hub/ansible_repo.git'
+  ANSIBLE_CLONE_DIR: ansible_repo
+  SSH_PRIVATE_KEY: "$CI_SSH_PRIVATE_KEY"
 
 stages:
   - build
@@ -31,46 +37,34 @@ deploy_job:
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success
-  variables:
-    DB_URL: "$DB_URL"
-    DB_USER: "$DB_USER"
-    DB_PASSWORD: "$DB_PASSWORD"
-    IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
-    REGISTRY_IMAGE: "$CI_REGISTRY_IMAGE/min-auth-proj"
-    ANSIBLE_REPO_URL: 'https://gitlab.com/aVOKADO-hub/ansible_repo.git'
-    ANSIBLE_CLONE_DIR: ansible_repo
-    SSH_PRIVATE_KEY: "$SSH_PRIVATE_KEY"
   before_script:
-  - apt-get update && apt-get install -y openssh-client git ansible
-  - mkdir -p ~/.ssh
-  - chmod 700 ~/.ssh
-  - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ansible
-  - chmod 600 ~/.ssh/id_ansible
-  - echo "Host gitlab.com
-    HostName gitlab.com
-    User git
-    IdentityFile ~/.ssh/id_ansible
-    IdentitiesOnly yes" > ~/.ssh/config
-  - chmod 600 ~/.ssh/config
-  - export ANSIBLE_HOST_KEY_CHECKING=False
-  #  Дебаг: перевіряємо перші кілька рядків ключа
-  - printf "%s\n" "$SSH_PRIVATE_KEY" > ~/.ssh/id_ansible
+    - apt-get update && apt-get install -y openssh-client git ansible
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ansible
+    - chmod 600 ~/.ssh/id_ansible
+    - echo "Host gitlab.com
+      HostName gitlab.com
+      User git
+      IdentityFile ~/.ssh/id_ansible
+      IdentitiesOnly yes" > ~/.ssh/config
+    - chmod 600 ~/.ssh/config
+    - export ANSIBLE_HOST_KEY_CHECKING=False
+    - printf "%s\n" "$SSH_PRIVATE_KEY" > ~/.ssh/id_ansible
 
-
-  - cat ~/.ssh/id_ansible | head -n 5
-  - ssh -v -i ~/.ssh/id_ansible git@gitlab.com || echo "🚫 SSH connection failed"
-
-  #  Дебаг: детальне SSH-з'єднання з GitLab
-  - echo "🔍 SSH debug test:" && ssh -vT git@gitlab.com || echo "🚫 SSH connection failed"
-
+    # Debugging SSH connection
+    - cat ~/.ssh/id_ansible | head -n 5
+    - ssh -v -i ~/.ssh/id_ansible git@gitlab.com || echo "🚫 SSH connection failed"
+    - echo "🔍 SSH debug test:" && ssh -vT git@gitlab.com || echo "🚫 SSH connection failed"
 
   script:
+    - git clone "$ANSIBLE_REPO_URL" "$ANSIBLE_CLONE_DIR"
     - ansible-playbook -i "$ANSIBLE_CLONE_DIR/inventory.ini" "$ANSIBLE_CLONE_DIR/deploy_docker.yml" \
-      -e "registry_image=$REGISTRY_IMAGE" \
+      -e "registry_image=$CI_REGISTRY_IMAGE/min-auth-proj" \
       -e "image_tag=$IMAGE_TAG" \
       -e "gitlab_db_url=$DB_URL" \
       -e "gitlab_db_user=$DB_USER" \
-      -e "gitlab_db_password=$DB_PASSWORD" \
+      -e "gitlab_db_password=$DB_PASSWORD"
   after_script:
     - rm -f ~/.ssh/id_ansible
     - rm -rf "$ANSIBLE_CLONE_DIR"
