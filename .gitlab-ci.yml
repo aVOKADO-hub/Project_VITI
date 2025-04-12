@@ -38,37 +38,51 @@ deploy_job:
     - if: '$CI_COMMIT_BRANCH == "master"'
       when: on_success
   before_script:
+    # Установка зависимостей в окружении Runner'а (если не установлены глобально)
+    - echo "Установка git, ansible, openssh-client..."
+    # Для Alpine (частый образ Runner'ов по умолчанию)
+    # - apk add --no-cache openssh-client git ansible
+    # Для Debian/Ubuntu:
     - apt-get update && apt-get install -y openssh-client git ansible
+
+    # Настройка SSH ключа для Ansible (для подключения к node01)
+    - echo "Настройка SSH ключа для Ansible..."
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ansible
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ansible # Переменная типа File из GitLab
     - chmod 600 ~/.ssh/id_ansible
-    - echo "Host gitlab.com
-      HostName gitlab.com
-      User git
-      IdentityFile ~/.ssh/id_ansible
-      IdentitiesOnly yes" > ~/.ssh/config
-    - chmod 600 ~/.ssh/config
-    - export ANSIBLE_HOST_KEY_CHECKING=False
-    - printf "%s\n" "$SSH_PRIVATE_KEY" > ~/.ssh/id_ansible
 
-    # Debugging SSH connection
-    - cat ~/.ssh/id_ansible | head -n 5
-    - ssh -v -i ~/.ssh/id_ansible git@gitlab.com || echo "🚫 SSH connection failed"
-    - echo "🔍 SSH debug test:" && ssh -vT git@gitlab.com || echo "🚫 SSH connection failed"
+            # ---> ДОБАВЛЕНО ДЛЯ ОТЛАДКИ <---
+    - echo "--- Проверка файла ключа ---"
+    - ls -l ~/.ssh/id_ansible
+    - echo "Первые 2 строки ключа:"
+    - head -n 2 ~/.ssh/id_ansible
+    - echo "Последние 2 строки ключа:"
+    - tail -n 2 ~/.ssh/id_ansible
+    - echo "--- Проверка ключа завершена ---"
+    # ---> КОНЕЦ ОТЛАДКИ <---
+
+    - export ANSIBLE_HOST_KEY_CHECKING=False # Отключаем проверку ключа хоста
+
+    # Клонирование Ansible репозитория
+    - echo "Клонирование Ansible репозитория в $ANSIBLE_CLONE_DIR..."
+    - git clone "$ANSIBLE_REPO_URL" "$ANSIBLE_CLONE_DIR"
 
   script:
-    - git clone "$ANSIBLE_REPO_URL" "$ANSIBLE_CLONE_DIR"
-    - ansible-playbook -i "$ANSIBLE_CLONE_DIR/inventory.ini" "$ANSIBLE_CLONE_DIR/deploy_docker.yml" \
-      -e "registry_image=$CI_REGISTRY_IMAGE/min-auth-proj" \
-      -e "image_tag=$IMAGE_TAG" \
-      -e "gitlab_db_url=$DB_URL" \
-      -e "gitlab_db_user=$DB_USER" \
+    - echo "Запуск Ansible Playbook для Docker-деплоя..."
+    # Вызываем плейбук из склонированного репо
+    # Убрали --private-key и переменные для registry_user/password/url
+    - >-
+      ansible-playbook -i "$ANSIBLE_CLONE_DIR/inventory.ini" "$ANSIBLE_CLONE_DIR/deploy_backend.yml"
+      -e "registry_image=$REGISTRY_IMAGE"
+      -e "image_tag=$IMAGE_TAG"
+      -e "gitlab_db_url=$DB_URL"
+      -e "gitlab_db_user=$DB_USER"
       -e "gitlab_db_password=$DB_PASSWORD"
-  after_script:
-    - rm -f ~/.ssh/id_ansible
-    - rm -rf "$ANSIBLE_CLONE_DIR"
-  cache:
-    paths:
-      - ~/.cache/pip
-      - ~/.ansible/
+      -e "gitlab_mysql_database=$MYSQL_DATABASE"
+      -e "gitlab_mysql_root_password=$MYSQL_ROOT_PASSWORD"
+      -e "gitlab_mail_host=$MAIL_HOST"
+      -e "gitlab_mail_port=$MAIL_PORT"
+      -e "gitlab_mail_username=$MAIL_USERNAME"
+      -e "gitlab_mail_password=$MAIL_PASSWORD"
+
