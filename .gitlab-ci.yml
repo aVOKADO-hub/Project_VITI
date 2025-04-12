@@ -49,15 +49,15 @@ deploy_job:
     # Проверка существования директории ansible_repo и клонирование/обновление
     - echo "Проверка существования директории ansible_repo..."
     - if [ -d "$ANSIBLE_CLONE_DIR" ]; then echo "Директория уже существует, выполняем git pull..."; 
-    cd "$ANSIBLE_CLONE_DIR" && git pull; 
-    # ssh -vT git@gitlab.com
+    # cd "$ANSIBLE_CLONE_DIR" && git pull; 
+    # # ssh -vT git@gitlab.com
 
-    # else echo "Клонируем репозиторий..."; 
-    # git clone "$ANSIBLE_REPO_URL" "$ANSIBLE_CLONE_DIR"; fi
+    # # else echo "Клонируем репозиторий..."; 
+    # # git clone "$ANSIBLE_REPO_URL" "$ANSIBLE_CLONE_DIR"; fi
 
-    # Проверка содержимого клонированной папки
-    - echo "Проверка содержимого клонированной папки..."
-    - ls -l "$ANSIBLE_CLONE_DIR"
+    # # Проверка содержимого клонированной папки
+    # - echo "Проверка содержимого клонированной папки..."
+    # - ls -l "$ANSIBLE_CLONE_DIR"
 
   script:
     - echo "Запуск Ansible Playbook для Docker-деплоя..."
