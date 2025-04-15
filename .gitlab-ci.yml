@@ -10,7 +10,8 @@ variables:
 
 stages:
   - test
-  # - build
+  - build
+  - test_container
   # - deploy
 
 
@@ -29,22 +30,35 @@ semgrep:
     # To configure MR comments on gitlab.com, see https://semgrep.dev/docs/semgrep-cloud-platform/gitlab-mr-comments/#steps-to-set-up-mr-comments
     # GITLAB_TOKEN: $PAT
 
-# build_job:
-#   stage: build
-#   tags:
-#     - runner
-#   before_script:
-#     - apt-get update
-#     - apt-get install -y openjdk-21-jdk maven docker.io
-#     - rm -rf ~/.m2/repository/org/springframework/boot/
-#   script:
-#     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-#     - docker build -t "$IMAGE_TAG" Back/
-#     - docker push "$IMAGE_TAG"
-#   cache:
-#     paths:
-#       - ~/.m2/repository/
+build_job:
+  stage: build
+  tags:
+    - runner
+  before_script:
+    - apt-get update
+    - apt-get install -y openjdk-21-jdk maven docker.io
+    - rm -rf ~/.m2/repository/org/springframework/boot/
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker build -t "$IMAGE_TAG" Back/
+    - docker push "$IMAGE_TAG"
+  cache:
+    paths:
+      - ~/.m2/repository/
 
+container_scan:
+  stage: test_container
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""] # Переопределяем точку входа
+  variables:
+    IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
+    REGISTRY_IMAGE: "$CI_REGISTRY_IMAGE/my-spring-app-docker-app"
+  script:
+    - trivy image --format sarif --output trivy-report.sarif $REGISTRY_IMAGE:$IMAGE_TAG
+  artifacts:
+    reports:
+      codequality: trivy-report.sarif
 # deploy_job:
 #   stage: deploy
 #   tags:
