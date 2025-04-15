@@ -1,6 +1,8 @@
 variables:
   DEBIAN_FRONTEND: noninteractive
-  IMAGE_TAG: "$CI_REGISTRY_IMAGE/min-auth-proj:$CI_COMMIT_SHORT_SHA"
+  # Define REGISTRY_IMAGE globally to avoid duplication
+  REGISTRY_IMAGE: "$CI_REGISTRY_IMAGE/min-auth-proj"
+  IMAGE_TAG: "$REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
   DB_URL: "$CI_DB_URL"
   DB_USER: "$CI_DB_USER"
   DB_PASSWORD: "$CI_DB_PASSWORD"
@@ -12,9 +14,6 @@ stages:
   - test
   - build
   - test_container
-  # - deploy
-
-
 
 semgrep:
   stage: test
@@ -27,8 +26,6 @@ semgrep:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   variables:
     SEMGREP_APP_TOKEN: $SEMGREP_APP_TOKEN
-    # To configure MR comments on gitlab.com, see https://semgrep.dev/docs/semgrep-cloud-platform/gitlab-mr-comments/#steps-to-set-up-mr-comments
-    # GITLAB_TOKEN: $PAT
 
 build_job:
   stage: build
@@ -50,15 +47,21 @@ container_scan:
   stage: test_container
   image:
     name: aquasec/trivy:latest
-    entrypoint: [""] # Переопределяем точку входа
+    entrypoint: [""]
+  services:
+    - docker:dind
   variables:
-    IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
-    REGISTRY_IMAGE: "$CI_REGISTRY_IMAGE/my-spring-app-docker-app"
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
   script:
-    - trivy image --format sarif --output trivy-report.sarif $REGISTRY_IMAGE:$IMAGE_TAG
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - trivy image --scanners vuln --format sarif --output trivy-report.sarif "$IMAGE_TAG"
   artifacts:
     reports:
       codequality: trivy-report.sarif
+    paths:
+      - trivy-report.sarif
+    when: always
 # deploy_job:
 #   stage: deploy
 #   tags:
