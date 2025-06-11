@@ -1,5 +1,6 @@
 package dep22.mitit_duty_auto.entities.security;
 
+import dep22.mitit_duty_auto.service.JwtService; // Імпортуємо JwtService
 import dep22.mitit_duty_auto.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -21,19 +22,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
-
 @Configuration
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity(debug = true) // debug = true можна буде потім прибрати
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
-    private final JwtAuthenticationFilter jwtAuthFilter;
-    private final JwtRequestFilter jwtRequestFilter; // <- Добавляем JWT фильтр
+    // ВИДАЛЕНО: private final JwtRequestFilter jwtRequestFilter;
+    private final JwtAuthenticationFilter jwtAuthFilter; // Цей фільтр використовує JwtService
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { // Забрав AuthenticationManager звідси, він вже є біном
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -41,21 +39,21 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/api/reports/test").permitAll()
-                        .requestMatchers("/api/reports").hasAnyAuthority("ROLE_DUTY_OFFICER_OF_MILITARY_UNIT", "ROLE_CHIEF_OF_TROOPS_SERVICE")
-                        .requestMatchers("/api/upload").permitAll()
-                        .requestMatchers("/api/sendTo").permitAll()
-                        .requestMatchers("/api/documents").permitAll()
-                        .requestMatchers("/api/documents/download").permitAll()
-                        .requestMatchers("/api/documents/*/markAsRead").permitAll()
+                        // Дозволимо ці ендпоінти для всіх, поки розбираємося з JWT, потім можна буде обмежити
+                        .requestMatchers("/api/documents/**").permitAll()
                         .requestMatchers("/api/reports/**").permitAll()
+                        .requestMatchers("/api/instructions/**").permitAll()
+                        .requestMatchers("/api/events/**").permitAll()
+                        .requestMatchers("/api/signals/**").permitAll()
+                        .requestMatchers("/api/upload").permitAll() // Якщо це окремий ендпоінт
                         .anyRequest().authenticated()
                 )
-                .authenticationManager(authenticationManager)
+                // .authenticationManager(authenticationManager) // authenticationManager вже налаштовується через DaoAuthenticationProvider
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .rememberMe(rememberMe -> rememberMe.disable())
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // ВИКОРИСТОВУЄМО jwtAuthFilter
 
         return http.build();
     }
@@ -64,12 +62,11 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("*");
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE","PATCH ", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
-
+        configuration.addAllowedOriginPattern("*"); // Для розробки, потім можна зробити більш строгим
+        // configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Краще так для продакшену
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")); // Переконайтесь, що PATCH є
+        configuration.setAllowedHeaders(List.of("*")); // Дозволяє всі заголовки
+        configuration.setAllowCredentials(true); // Важливо для cookies/auth headers
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

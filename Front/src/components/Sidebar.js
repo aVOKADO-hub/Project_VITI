@@ -1,28 +1,39 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Modal, Button } from 'react-bootstrap';
+// Припускаємо, що стилі для .icon та .sidebar вже є в App.css або іншому CSS файлі
 
 const Sidebar = ({ toggleModal, toggleReportsModal, hasUnreadDocuments, reportNotifications }) => {
     const navigate = useNavigate();
     const [showExitModal, setShowExitModal] = useState(false);
 
-    const role = localStorage.getItem('role')
-    const handleClose = () => setShowExitModal(false);
-    const handleShow = () => setShowExitModal(true);
+    // Отримуємо роль з localStorage
+    const role = localStorage.getItem('role');
 
-    const handleExit = () => {
-        navigate('/admin');
-        handleClose();
+    const handleCloseExitModal = () => setShowExitModal(false);
+    const handleShowExitModal = () => setShowExitModal(true);
+
+    const handleExitApp = () => { // Перейменував для ясності, що це вихід з додатку/логін
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('role');
+        navigate('/admin'); // Або '/login', залежно від вашого маршруту для входу
+        handleCloseExitModal();
     };
 
     const handleAdminPanelEnter = () => {
         navigate('/adminPanel');
     }
+
+    // Нова функція для переходу на сторінку карти тривог
+    const handleAlertsMapEnter = () => {
+        navigate('/alerts-map'); // Новий маршрут
+    };
+
     return (
         <>
             <aside className="sidebar">
                 <div className="tools">
-                    {/* Іконка для відкриття модального вікна документів */}
+                    {/* Іконка Документи / Відправка документів */}
                     {role === 'CHIEF_OF_TROOPS_SERVICE' ? (
                         <div className={`icon documents`} onClick={toggleModal} title="Відправка документів">
                             <img src={require('../img/file-transfer.png')} alt="Docs-menu" style={{ width: "30px" }} />
@@ -33,48 +44,42 @@ const Sidebar = ({ toggleModal, toggleReportsModal, hasUnreadDocuments, reportNo
                         </div>
                     )}
 
-                    {/* Додаткові іконки для інших інструментів у майбутньому */}
+                    {/* Іконка Карта Тривог (тільки для DUTY_OFFICER_OF_MILITARY_UNIT) */}
+                    {role === 'DUTY_OFFICER_OF_MILITARY_UNIT' && (
+                        <div className="icon alerts-map-icon" onClick={handleAlertsMapEnter} title="Карта повітряних тривог">
+                            {/* Замініть на вашу реальну іконку, якщо є */}
+                            <img src={require('../img/siren.png')} alt="Alerts Map" style={{ width: "30px" }} />
+                        </div>
+                    )}
+
                     <div className="icon" title="Інший інструмент">
                         <img src={require('../img/tools.png')} alt="Other-tool" style={{ width: "30px" }} />
                     </div>
-                    {role === 'CHIEF_OF_TROOPS_SERVICE' ? (
+
+                    {/* Адмін панель та Доповіді для CHIEF_OF_TROOPS_SERVICE */}
+                    {role === 'CHIEF_OF_TROOPS_SERVICE' && (
                         <div className="chief-of-troops-container">
-                            <div className="icon admin-panel" title="Вхід в адмін панель">
-                                <img
-                                    src={require('../img/admin.png')}
-                                    alt="admin"
-                                    style={{
-                                        width: "30px", height: "30px"
-                                    }}
-                                    onClick={handleAdminPanelEnter}
-                                />
+                            <div className="icon admin-panel" title="Вхід в адмін панель" onClick={handleAdminPanelEnter}>
+                                <img src={require('../img/admin.png')} alt="admin" style={{ width: "30px", height: "30px" }} />
                             </div>
-                            <div className={`icon reports-warn ${reportNotifications.length > 0 ? "warning" : ""}`} title="Невиконані доповіді" onClick={toggleReportsModal}>
-                                <img
-                                    src={require('../img/warning.png')}
-                                    alt="reports"
-                                    style={{
-                                        width: "30px", height: "30px"
-                                    }}
-                                />
+                            <div className={`icon reports-warn ${reportNotifications && reportNotifications.length > 0 ? "warning" : ""}`} title="Невиконані доповіді" onClick={toggleReportsModal}>
+                                <img src={require('../img/warning.png')} alt="reports" style={{ width: "30px", height: "30px" }} />
                             </div>
                         </div>
-                    ) : null}
+                    )}
                 </div>
-                <div className="icon exit">
+
+                <div className="icon exit" title="Вихід">
                     <img
                         src={require('../img/exit.png')}
                         alt="Exit"
                         style={{ width: "30px" }}
-                        onClick={handleShow}
+                        onClick={handleShowExitModal}
                     />
                 </div>
+            </aside>
 
-
-            </aside >
-
-            {/* Модальне вікно підтвердження виходу */}
-            < Modal show={showExitModal} onHide={handleClose} centered >
+            <Modal show={showExitModal} onHide={handleCloseExitModal} centered>
                 <Modal.Header closeButton>
                     <Modal.Title>Підтвердження виходу</Modal.Title>
                 </Modal.Header>
@@ -82,14 +87,14 @@ const Sidebar = ({ toggleModal, toggleReportsModal, hasUnreadDocuments, reportNo
                     Ви впевнені що хочете вийти?
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={handleClose}>
+                    <Button variant="secondary" onClick={handleCloseExitModal}>
                         Ні
                     </Button>
-                    <Button variant="primary" onClick={handleExit}>
+                    <Button variant="primary" onClick={handleExitApp}>
                         Так
                     </Button>
                 </Modal.Footer>
-            </ Modal>
+            </Modal>
         </>
     );
 };

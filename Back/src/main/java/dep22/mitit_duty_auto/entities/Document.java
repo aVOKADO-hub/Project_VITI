@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
+import java.util.Date; // Імпорт java.util.Date
 
 @Entity
 @Table(name = "documents")
@@ -23,7 +23,7 @@ public class Document {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING) // ВАЖЛИВО!
     @Column(name = "type_of_document", nullable = false)
     private TypeOfDocument typeOfDocument;
 
@@ -33,20 +33,23 @@ public class Document {
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;
 
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "send_date")
     private Date sendDate;
 
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "read_date")
     private Date readDate;
 
-    @Column(name = "create_by") // Тип String
+    @Column(name = "create_by")
     private String createBy;
 
-    @Column(name = "send_to") // Тип String
-    private String sendTo;
+    @Enumerated(EnumType.STRING) // ВАЖЛИВО!
+    @Column(name = "send_to")
+    private Roles sendTo;
 
     public Document(String title, TypeOfDocument typeOfDocument, String path, boolean isRead,
-                    Date sendDate, Date readDate, String createBy, String sendTo) {
+                    Date sendDate, Date readDate, String createBy, Roles sendTo) {
         this.title = title;
         this.typeOfDocument = typeOfDocument;
         this.path = path;

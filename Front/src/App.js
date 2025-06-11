@@ -1,22 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LoginPanel from './components/LoginPanel'
+import LoginPanel from './components/LoginPanel';
 import AdminPanel from './components/AdminPanel';
 import './App.css';
-import { useRef, useState, useEffect } from "react";
-import MainLayout from './components/MainLayout'
+import { useState, useEffect } from "react";
+import MainLayout from './components/MainLayout';
 import CommandantPage from './components/CommandantPage';
 import StaffPage from './components/StaffPage';
+import AlertsMapPage from './components/AlertsMapPage'
 
 function App() {
-  const reportRef = useRef(null);
   const [events, setEvents] = useState([]);
-  const [currentEventIndex, setCurrentEventIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState({});
-  const [alertTriggered, setAlertTriggered] = useState(false);
-  const [sharedDocument, setSharedDocument] = useState(null);
-  const token = localStorage.getItem('authToken')
+  // Видаляємо стани, які переїхали в хук
+  const token = localStorage.getItem('authToken');
 
-  // Fetch events from the API
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -32,59 +28,30 @@ function App() {
       }
     };
 
-    fetchEvents();
-  }, []);
+    if (token) {
+      fetchEvents();
+    }
+  }, [token]);
 
   return (
     <Router>
       <Routes>
         <Route
-          path="/dutyOfficer" // ЧІ
-          element={
-            <MainLayout
-              events={events}
-              currentEventIndex={currentEventIndex}
-              timeLeft={timeLeft}
-              reportRef={reportRef}
-              alertTriggered={alertTriggered}
-              setAlertTriggered={setAlertTriggered}
-              setCurrentEventIndex={setCurrentEventIndex}
-              setTimeLeft={setTimeLeft}  // Pass setTimeLeft here
-              sharedDocument={sharedDocument}
-              setSharedDocument={setSharedDocument}
-            />
-          }
+          path="/dutyOfficer"
+          element={<MainLayout events={events} />}
+        />
+
+        <Route
+          path="/alerts-map"
+          element={<AlertsMapPage />}
         />
         <Route
-          path="/staffOfficer"// ВООС - начальник штабу
-          element={
-            <StaffPage
-              events={events}
-              currentEventIndex={currentEventIndex}
-              timeLeft={timeLeft}
-              reportRef={reportRef}
-              alertTriggered={alertTriggered}
-              setAlertTriggered={setAlertTriggered}
-              setCurrentEventIndex={setCurrentEventIndex}
-              setTimeLeft={setTimeLeft}  // Pass setTimeLeft here
-            />
-          }
+          path="/staffOfficer"
+          element={<StaffPage events={events} />}
         />
         <Route
-          path="/сommandantOfficer"// комендант
-          element={
-            <CommandantPage
-              events={events}
-              currentEventIndex={currentEventIndex}
-              timeLeft={timeLeft}
-              reportRef={reportRef}
-              alertTriggered={alertTriggered}
-              setAlertTriggered={setAlertTriggered}
-              setCurrentEventIndex={setCurrentEventIndex}
-              setTimeLeft={setTimeLeft}  // Pass setTimeLeft here
-              setSharedDocument={setSharedDocument}
-            />
-          }
+          path="/сommandantOfficer"
+          element={<CommandantPage events={events} />}
         />
         <Route path="/admin" element={<LoginPanel />} />
         <Route path="/adminPanel" element={<AdminPanel />} />
@@ -92,7 +59,5 @@ function App() {
     </Router>
   );
 }
-
-
 
 export default App;

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 
 const AdminPanel = () => {
+
+  const navigate = useNavigate(); // Ініціалізуємо useNavigate
   const [dataType, setDataType] = useState("events"); // Default to managing events
   const [data, setData] = useState([]);
   const [newData, setNewData] = useState({
@@ -138,6 +141,10 @@ const AdminPanel = () => {
 
   const headerText = getHeaderText(dataType);
 
+  const handleExitAdminPanel = () => {
+    navigate('/сommandantOfficer'); // Або інший шлях до головного меню
+  };
+
   return (
     <div className="admin-wrapper">
       <div className="admin-panel">
@@ -155,6 +162,9 @@ const AdminPanel = () => {
           </button>
           <button className={`toggle-button ${dataType === "reports" ? "active" : ""}`} onClick={() => setDataType("reports")}>
             Керування Доповідями
+          </button>
+          <button onClick={handleExitAdminPanel} className="btn btn-outline-secondary"> {/* Кнопка Bootstrap */}
+            Вихід до меню
           </button>
         </div>
 

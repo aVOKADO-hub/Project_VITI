@@ -31,63 +31,45 @@ function DocumentForm() {
             return;
         }
         try {
-            // 1. Відправляємо файл (перший запит)
             if (!file) {
                 alert('Будь ласка, завантажте файл');
                 return;
             }
-            console.log(file); // Додайте це перед формуванням FormData
+            console.log(file);
 
             const formData = new FormData();
-            formData.append('document', file);
-            formData.append("typeOfDocument", selectedDocType);
-            formData.append("createBy", localStorage.getItem("role"));
-            formData.append("sendTo", selectedRole);
+            formData.append('document', file); // Сам файл
+            formData.append("typeOfDocument", selectedDocType); // Тип документа (з select)
+            formData.append("createBy", localStorage.getItem("role")); // Роль того, хто створює
+            formData.append("sendTo", selectedRole); // Кому надсилається (з select)
+            // title буде взято з імені файлу на бекенді
 
-            const fileUploadResponse = await fetch('http://localhost:8080/api/documents/upload', {
+            const fileUploadResponse = await fetch('http://localhost:8080/api/documents/upload', { // ТІЛЬКИ ЦЕЙ ЗАПИТ
                 method: 'POST',
                 headers: {
+                    // 'Content-Type': 'multipart/form-data' встановлюється браузером автоматично для FormData
                     "Authorization": `Bearer ${token}`,
                 },
                 body: formData
             });
 
             if (!fileUploadResponse.ok) {
-                throw new Error('Помилка завантаження файлу');
+                const errorText = await fileUploadResponse.text();
+                console.error('Помилка завантаження файлу:', errorText);
+                throw new Error('Помилка завантаження файлу: ' + errorText);
             }
 
             const fileUploadResult = await fileUploadResponse.json();
-            console.log('Файл завантажено:', fileUploadResult);
-
-            // 2. Відправляємо метадані (другий запит)
-            const metadata = {
-                title: file.name, // Назва документа з назви файлу
-                typeOfDocument: selectedDocType,
-                path: fileUploadResult.path, // Шлях з першого запиту
-                createBy: localStorage.getItem('role'),
-                sendTo: selectedRole,
-            };
-
-            const metadataResponse = await fetch('http://localhost:8080/api/documents/save', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify(metadata),
-            });
-
-            if (!metadataResponse.ok) {
-                throw new Error('Помилка відправки метаданих');
-            }
-
-            const metadataResult = await metadataResponse.json();
-            console.log('Метадані збережено:', metadataResult);
+            console.log('Документ успішно відправлено та збережено:', fileUploadResult);
 
             alert('Документ успішно відправлено!');
+            // Тут можна додати логіку для оновлення списку документів у батьківському компоненті,
+            // наприклад, викликати fetchDocuments(), якщо він переданий через props.
+            // Або, якщо fileUploadResult містить повний DTO, можна додати його локально до списку.
+
         } catch (error) {
             console.error('Помилка при відправці документа:', error);
-            alert('Не вдалося відправити документ.');
+            alert('Не вдалося відправити документ: ' + error.message);
         }
     };
 

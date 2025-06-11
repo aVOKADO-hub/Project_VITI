@@ -59,9 +59,6 @@ container_scan:
   artifacts:
     reports:
       codequality: trivy-report.sarif
-    paths:
-      - trivy-report.sarif
-    when: always
 # deploy_job:
 #   stage: deploy
 #   tags:

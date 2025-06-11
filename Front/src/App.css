@@ -14,6 +14,11 @@
   color: black;
   position: relative;
   margin-left: 4.3rem;
+  
+}
+/* Зробіть так: */
+.wrapper:not(.no-sidebar) {
+  margin-left: 4.3rem;
 }
 .wrapper::before {
   content: "";
@@ -618,4 +623,199 @@ form{
     background: #ccc;
 }
 
+/* Стилі для сторінки карти тривог */
+.alerts-map-container {
+  padding: 20px;
+  margin-left: 0; /* Скидаємо margin для сайдбару */
+  height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  background: #6a847f;
+  color: black;
+  position: relative;
+  font-family: Arial, sans-serif;
+}
 
+/* Альтернативно: якщо потрібно перекрити глобальний стиль wrapper */
+.alerts-map-container.no-sidebar {
+  margin-left: 0 !important;
+}
+
+/* Фоновий елемент з логотипом */
+.alerts-map-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url(./img/bg-logo.png);
+  background-size: cover;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+/* Всі елементи контейнера повинні бути поверх фону */
+.alerts-map-container > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Заголовок сторінки */
+.alerts-map-container h2 {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 20px;
+  background-color: #e0ebeb;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 0 0 20px 0;
+}
+
+/* Обертка для iframe з стилізацією */
+.alerts-map-wrapper {
+  flex: 1;
+  background-color: #e0ebeb;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 2;
+}
+
+/* Стилі для iframe */
+.alerts-map-container iframe {
+  width: 100%;
+  height: 100%;
+  border: 2px solid #6a847f;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Футер з інформацією про сервіс */
+.alerts-map-footer {
+  margin-top: 15px;
+  padding: 10px;
+  font-style: italic;
+  text-align: center;
+  background-color: rgba(224, 235, 235, 0.8);
+  border-radius: 5px;
+  font-size: 0.9rem;
+}
+
+.alerts-map-footer a {
+  color: #6a847f;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.alerts-map-footer a:hover {
+  color: #536b63;
+  text-decoration: underline;
+}
+
+/* Повідомлення про недоступність iframe */
+.alerts-map-container iframe p {
+  padding: 20px;
+  text-align: center;
+  font-size: 1rem;
+  color: #333;
+}
+
+.alerts-map-container iframe p a {
+  color: #6a847f;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.alerts-map-container iframe p a:hover {
+  text-decoration: underline;
+}
+
+/* Кнопка повернення назад */
+.back-button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background-color: #6a847f;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-button:hover {
+  background-color: #536b63;
+  transform: scale(1.1);
+}
+
+.back-button:active {
+  transform: scale(0.95);
+}
+
+/* Респонсивність для мобільних пристроїв */
+@media (max-width: 768px) {
+  .alerts-map-container {
+    margin-left: 0;
+    padding: 10px;
+  }
+  
+  .alerts-map-container h2 {
+    font-size: 1.5rem;
+    padding: 10px;
+  }
+  
+  .alerts-map-wrapper {
+    padding: 15px;
+  }
+  
+  .alerts-map-footer {
+    font-size: 0.8rem;
+  }
+}
+
+/* Індикатор завантаження */
+.alerts-map-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(224, 235, 235, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  z-index: 3;
+}
+
+.alerts-map-loading::after {
+  content: "";
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #6a847f;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

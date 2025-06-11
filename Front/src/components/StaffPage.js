@@ -1,57 +1,17 @@
-
-import { useEffect } from "react";
-import { useLocation } from 'react-router-dom';
 import KyivTime from './KyivTime';
 import Navbar from "./Navbar";
 import Schedule from './Schedule';
-import Report from "./Report";
-import Instruction from './Instruction';
+import { useEventTimer } from '../hooks/useEventTimer'; // Імпортуємо наш хук
 
+// Коментарі до невикористовуваних імпортів можна видалити
+// import Report from "./Report"; 
+// import Instruction from './Instruction';
 
-function StaffPage({ events, currentEventIndex, timeLeft, reportRef, alertTriggered, setAlertTriggered, setCurrentEventIndex, setTimeLeft }) {
-    const location = useLocation();
+function StaffPage({ events }) {
+    // Вся логіка таймера тепер інкапсульована в хуці
+    const { timeLeft, currentEventIndex } = useEventTimer(events);
 
-
-    // Calculate time left for the current event
-    const calculateTimeLeft = (eventTime) => {
-        const now = new Date();
-        const eventDate = new Date(`${now.toISOString().split("T")[0]}T${eventTime}`);
-        const difference = eventDate - now;
-
-        if (difference > 0) {
-            return {
-                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                minutes: Math.floor((difference / 1000 / 60) % 60),
-                seconds: Math.floor((difference / 1000) % 60),
-                totalMilliseconds: difference,
-            };
-        } else {
-            return { hours: 0, minutes: 0, seconds: 0, totalMilliseconds: 0 };
-        }
-    };
-
-    // Timer logic to check current event and trigger alerts, only if not in /admin
-    useEffect(() => {
-        const timer = setInterval(() => {
-            if (events.length > 0 && location.pathname !== "/admin") {
-                const currentEvent = events[currentEventIndex];
-                const newTimeLeft = calculateTimeLeft(currentEvent.eventTime);
-                setTimeLeft(newTimeLeft);
-
-                if (newTimeLeft.totalMilliseconds <= 600000 && !alertTriggered) {
-                    alert(`Провести перевірку події: ${currentEvent.eventName}`);
-                    setAlertTriggered(true);
-                }
-
-                if (newTimeLeft.totalMilliseconds <= 0 && currentEventIndex < events.length - 1) {
-                    setAlertTriggered(false);
-                    setCurrentEventIndex((prevIndex) => prevIndex + 1);
-                }
-            }
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, [events, currentEventIndex, alertTriggered, location.pathname, setTimeLeft]); // Make sure setTimeLeft is included in the dependency array
+    // Функція calculateTimeLeft та громіздкий useEffect для таймера видалені
 
     return (
         <div className="container">
@@ -63,7 +23,6 @@ function StaffPage({ events, currentEventIndex, timeLeft, reportRef, alertTrigge
                     events={events}
                     currentEventIndex={currentEventIndex}
                     timeLeft={timeLeft}
-                    triggerReportClick={() => console.log("Report Triggered")}
                 />
             </div>
             <div className="schedule-section">
@@ -72,6 +31,8 @@ function StaffPage({ events, currentEventIndex, timeLeft, reportRef, alertTrigge
                     currentEventIndex={currentEventIndex}
                 />
             </div>
+
+            {/* Закоментовані секції залишаються без змін */}
             {/* <div className="reports-section">
                 <Report reportRef={reportRef} />
             </div>
@@ -80,6 +41,6 @@ function StaffPage({ events, currentEventIndex, timeLeft, reportRef, alertTrigge
             </div> */}
         </div>
     );
-
 }
-export default StaffPage
+
+export default StaffPage;

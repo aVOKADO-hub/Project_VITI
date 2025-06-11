@@ -35,7 +35,15 @@ const DocumentsTable = ({ documents, setDocuments, fetchDocuments, loading, erro
             });
 
             if (response.ok) {
-                await fetchDocuments();
+                // Отримуємо оновлений документ з тіла відповіді
+                const updatedDoc = await response.json();
+
+                // Оновлюємо стан локально, не викликаючи fetchDocuments()
+                setDocuments(prevDocuments =>
+                    prevDocuments.map(doc =>
+                        doc.id === id ? { ...doc, read: updatedDoc.read } : doc
+                    )
+                );
             } else {
                 console.error("Помилка під час відзначення документа прочитаним");
             }

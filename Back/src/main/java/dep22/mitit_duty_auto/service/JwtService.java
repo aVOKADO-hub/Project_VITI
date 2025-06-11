@@ -20,7 +20,7 @@ public class JwtService {
     @Value("${jwt.secret:defaultSecretKey12345678901234567890}")
     private String secretKey;
 
-    @Value("${jwt.expiration:86400000}") // 24 hours in milliseconds
+    @Value("${jwt.expiration:86400000}")
     private long jwtExpiration;
 
     public String generateToken(Authentication authentication, User user) {

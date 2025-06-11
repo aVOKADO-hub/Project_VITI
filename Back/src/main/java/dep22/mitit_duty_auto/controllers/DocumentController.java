@@ -24,8 +24,11 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -93,15 +96,15 @@ public List<DocumentDto> getAllDocuments(@RequestParam("sendTo") Roles sendTo) {
 
 
 
+    // Back/src/main/java/dep22/mitit_duty_auto/controllers/DocumentController.java
+
     @PostMapping("/upload")
     public ResponseEntity<?> uploadDocument(
             @RequestParam("document") MultipartFile document,
             @RequestParam("typeOfDocument") TypeOfDocument typeOfDocument,
             @RequestParam("createBy") String createBy,
-            @RequestParam("sendTo") String sendTo)
-
+            @RequestParam("sendTo") String sendTo) // sendTo приходить як рядок
     {
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && isAuthenticated(authentication)) {
             try {
@@ -110,7 +113,10 @@ public List<DocumentDto> getAllDocuments(@RequestParam("sendTo") Roles sendTo) {
                 }
                 System.out.println("Received file: " + document.getOriginalFilename());
 
-                DocumentDto documentDto = documentService.saveDocument(document, typeOfDocument, createBy, sendTo);
+                // ВИПРАВЛЕННЯ: Перетворюємо рядок "sendTo" на Enum Roles
+                Roles sendToRole = Roles.valueOf(sendTo.toUpperCase());
+
+                DocumentDto documentDto = documentService.saveDocument(document, typeOfDocument, createBy, sendToRole);
                 return ResponseEntity.ok(documentDto);
             } catch (IOException | IllegalArgumentException e) {
                 e.printStackTrace(); // Логування помилки
@@ -124,16 +130,40 @@ public List<DocumentDto> getAllDocuments(@RequestParam("sendTo") Roles sendTo) {
 
 
 
+    // Back/src/main/java/dep22/mitit_duty_auto/controllers/DocumentController.java
+
     @PostMapping("/save")
     public ResponseEntity<Document> createDocument(@RequestBody DocumentDto documentDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && isAuthenticated(authentication)) {
+
+            // FIX: Конвертуємо рядки з DTO в відповідні Enum-типи
+            TypeOfDocument typeOfDocumentEnum = null;
+            if (documentDto.getTypeOfDocument() != null && !documentDto.getTypeOfDocument().isEmpty()) {
+                try {
+                    typeOfDocumentEnum = TypeOfDocument.valueOf(documentDto.getTypeOfDocument().toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    // Обробка помилки, якщо значення рядка не відповідає жодному Enum
+                    return ResponseEntity.badRequest().body(null); // Або інша обробка помилки
+                }
+            }
+
+            Roles sendToEnum = null;
+            if (documentDto.getSendTo() != null && !documentDto.getSendTo().isEmpty()) {
+                try {
+                    sendToEnum = Roles.valueOf(documentDto.getSendTo().toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    // Обробка помилки
+                    return ResponseEntity.badRequest().body(null); // Або інша обробка помилки
+                }
+            }
+
             Document savedDocument = documentService.saveDocument(
                     documentDto.getTitle(),
-                    documentDto.getTypeOfDocument(),
+                    typeOfDocumentEnum, // Передаємо Enum
                     documentDto.getPath(),
                     documentDto.getCreateBy(),
-                    documentDto.getSendTo()
+                    sendToEnum          // Передаємо Enum
             );
             return ResponseEntity.ok(savedDocument);
         } else {
@@ -141,14 +171,34 @@ public List<DocumentDto> getAllDocuments(@RequestParam("sendTo") Roles sendTo) {
         }
     }
 
+
     @PatchMapping("/{id}/markAsRead")
     public ResponseEntity<?> markAsRead(@PathVariable Integer id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && isAuthenticated(authentication)) {
             try {
+                Document updatedDocument = documentService.markAsRead(id);
 
-                documentService.markAsRead(id);
-                return ResponseEntity.ok().build();
+                Date sendDate = updatedDocument.getSendDate();
+                LocalDateTime sendDateTime = null;
+                if (sendDate != null) {
+                    sendDateTime = sendDate.toInstant()
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDateTime();
+                }
+
+                // Ось тут створюється DTO
+                DocumentDto updatedDocumentDto = new DocumentDto(
+                        updatedDocument.getId(),
+                        updatedDocument.getTitle(),
+                        updatedDocument.getTypeOfDocument().name(),
+                        updatedDocument.getPath(),
+                        updatedDocument.getCreateBy(),
+                        updatedDocument.getSendTo().name(),
+                        sendDateTime,
+                        updatedDocument.isRead()
+                );
+                return ResponseEntity.ok(updatedDocumentDto);
             } catch (EntityNotFoundException e) {
                 return ResponseEntity.notFound().build();
             } catch (Exception e) {
