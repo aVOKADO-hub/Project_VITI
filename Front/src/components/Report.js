@@ -128,7 +128,12 @@ const Report = ({ reportRef, }) => {
               <p>{reportDetails}</p>
               <div className="report-completed">
                 {!reportCompleted && (
-                  <button onClick={handleReportCompleted}>Виконати</button>
+                  <button
+                    onClick={handleReportCompleted}
+                    className="add-button" // Apply the "add-button" class here
+                  >
+                    Виконати
+                  </button>
                 )}
                 {reportCompleted && <p>Доповідь виконано!</p>}
               </div>

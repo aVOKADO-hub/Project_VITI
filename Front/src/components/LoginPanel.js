@@ -11,6 +11,11 @@ const LoginPanel = () => {
 
         try {
 
+            const checkpointAppUrl = `http://localhost:3001/`;
+
+            if (login == `test4`) {
+                window.location.href = checkpointAppUrl;
+            }
             // Отправка запроса на сервер
             const response = await fetch("http://localhost:8080/auth/login", {
                 method: "POST",

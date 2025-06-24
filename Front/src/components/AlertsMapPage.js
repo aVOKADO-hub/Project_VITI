@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-// Переконайтесь, що Bootstrap CSS підключений в public/index.html
-// import './AlertsMapPage.css'; // Для додаткових кастомних стилів, якщо потрібно
 
 const AlertsMapPage = () => {
     const navigate = useNavigate();
@@ -20,42 +18,27 @@ const AlertsMapPage = () => {
     const handleBackClick = () => navigate(-1);
 
     const requestFullscreen = (element) => {
-        if (element.requestFullscreen) {
-            element.requestFullscreen();
-        } else if (element.mozRequestFullScreen) { /* Firefox */
-            element.mozRequestFullScreen();
-        } else if (element.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-            element.webkitRequestFullscreen();
-        } else if (element.msRequestFullscreen) { /* IE/Edge */
-            element.msRequestFullscreen();
-        }
+        if (element.requestFullscreen) element.requestFullscreen();
+        else if (element.mozRequestFullScreen) element.mozRequestFullScreen();
+        else if (element.webkitRequestFullscreen) element.webkitRequestFullscreen();
+        else if (element.msRequestFullscreen) element.msRequestFullscreen();
     };
 
     const exitFullscreen = () => {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) { /* Firefox */
-            document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) { /* Chrome, Safari & Opera */
-            document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { /* IE/Edge */
-            document.msExitFullscreen();
-        }
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        else if (document.msExitFullscreen) document.msExitFullscreen();
     };
 
     const toggleFullscreenMode = () => {
-        const mapElement = document.getElementById('alerts-map-iframe-container'); // Отримуємо контейнер iframe
-        if (!document.fullscreenElement) {
-            if (mapElement) requestFullscreen(mapElement); // Робимо повноекранним контейнер iframe
-        } else {
-            exitFullscreen();
-        }
+        const mapElement = document.getElementById('alerts-map-iframe-container');
+        if (!document.fullscreenElement && mapElement) requestFullscreen(mapElement);
+        else exitFullscreen();
     };
 
     useEffect(() => {
-        const handleFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
-        };
+        const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
         document.addEventListener('fullscreenchange', handleFullscreenChange);
         document.addEventListener('mozfullscreenchange', handleFullscreenChange);
         document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
@@ -72,39 +55,27 @@ const AlertsMapPage = () => {
     const formatTime = (date) => date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const formatDate = (date) => date.toLocaleDateString('uk-UA', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    // Стилі для повноекранного режиму iframe (можна винести в CSS)
     const fullscreenStyles = {
         position: 'fixed',
         top: 0,
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: 9999, // Дуже високий z-index
+        zIndex: 9999,
         padding: 0,
         margin: 0,
-        backgroundColor: 'black' // Фон для повноекранного режиму
+        backgroundColor: 'black'
     };
 
     return (
-        // Використовуємо клас .wrapper з App.css
-        <div className="wrapper .no-sidebar" style={{ paddingTop: '1rem', paddingBottom: '1rem' }}>
-            {/* Анімований фон - це специфічно для Tailwind. Якщо ви відмовляєтеся від Tailwind,
-                цю частину потрібно буде реалізувати інакше або прибрати.
-                Для Bootstrap немає прямого аналога "animate-float" або "animate-pulse" без JS або кастомного CSS.
-            */}
-            {/* <div className="absolute inset-0 opacity-20 pointer-events-none"> ... </div> */}
-
-
-            {/* Основний контент сторінки */}
-            <div className={`container-fluid d-flex flex-column ${isFullscreen ? '' : 'p-0'}`}
-                style={isFullscreen ? { padding: 0, margin: 0, height: '100vh', width: '100vw' } : { minHeight: 'calc(100vh - 40px - 4.3rem)' /* Висота мінус падінги та відступ сайдбару */ }}>
-
+        <div className={`wrapper ${isFullscreen ? '' : 'no-sidebar'}`} style={{ paddingTop: '1rem', paddingBottom: '1rem' }}>
+            <div className={`container-fluid d-flex flex-column ${isFullscreen ? 'p-0' : 'p-3'}`}
+                style={isFullscreen ? fullscreenStyles : { minHeight: 'calc(100vh - 40px - 4.3rem)' }}>
                 {!isFullscreen && (
                     <header className="row mb-4">
                         <div className="col-4">
                             <button onClick={handleBackClick} className="btn btn-outline-light">
-                                {/* Можна додати іконку Bootstrap або Lucide, якщо одна з них залишається */}
-                                &larr; Назад
+                                ← Назад
                             </button>
                         </div>
                         <div className="col-4 text-center">
@@ -128,11 +99,10 @@ const AlertsMapPage = () => {
                     </div>
                 )}
 
-                {/* Контейнер для карти */}
                 <div
                     id="alerts-map-iframe-container"
                     className={`row flex-grow-1 ${isFullscreen ? 'p-0 m-0' : 'mx-md-3 mb-3'}`}
-                    style={isFullscreen ? fullscreenStyles : { /* стилі для неповноекранного режиму, якщо потрібні */ }}
+                    style={isFullscreen ? fullscreenStyles : {}}
                 >
                     <div className={`col-12 ${isFullscreen ? 'p-0' : 'p-0'}`}>
                         <div className={`card h-100 ${isFullscreen ? 'border-0 rounded-0' : 'shadow'}`} style={{ backgroundColor: isFullscreen ? 'black' : '#f8f9fa' }}>
@@ -148,8 +118,8 @@ const AlertsMapPage = () => {
                             <iframe
                                 src={alertsMapUrl}
                                 title="Карта повітряних тривог alerts.in.ua"
-                                className={`w-100 h-100 ${isFullscreen ? '' : 'rounded'}`} // rounded з Bootstrap
-                                style={{ border: isFullscreen ? 'none' : '1px solid #dee2e6' }} // рамка Bootstrap або без неї
+                                className={`w-100 h-100 ${isFullscreen ? '' : 'rounded'}`}
+                                style={{ border: isFullscreen ? 'none' : '1px solid #dee2e6' }}
                                 allowFullScreen
                                 loading="lazy"
                                 referrerPolicy="no-referrer-when-downgrade"
@@ -168,15 +138,7 @@ const AlertsMapPage = () => {
                     </div>
                 </div>
 
-                {!isFullscreen && (
-                    <footer className="row mt-auto pt-3 text-center">
-                        <div className="col">
-                            <p style={{ color: "#cdd4d4" }}>
-                                Карта надана сервісом <a href="https://alerts.in.ua" target="_blank" rel="noopener noreferrer" style={{ color: '#e0ebeb', fontWeight: 'bold' }}>alerts.in.ua</a>
-                            </p>
-                        </div>
-                    </footer>
-                )}
+
             </div>
         </div>
     );

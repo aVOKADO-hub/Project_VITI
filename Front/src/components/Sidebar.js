@@ -52,9 +52,7 @@ const Sidebar = ({ toggleModal, toggleReportsModal, hasUnreadDocuments, reportNo
                         </div>
                     )}
 
-                    <div className="icon" title="Інший інструмент">
-                        <img src={require('../img/tools.png')} alt="Other-tool" style={{ width: "30px" }} />
-                    </div>
+
 
                     {/* Адмін панель та Доповіді для CHIEF_OF_TROOPS_SERVICE */}
                     {role === 'CHIEF_OF_TROOPS_SERVICE' && (
@@ -67,6 +65,9 @@ const Sidebar = ({ toggleModal, toggleReportsModal, hasUnreadDocuments, reportNo
                             </div>
                         </div>
                     )}
+                    <div className="icon" title="Інший інструмент">
+                        <img src={require('../img/tools.png')} alt="Other-tool" style={{ width: "30px" }} />
+                    </div>
                 </div>
 
                 <div className="icon exit" title="Вихід">

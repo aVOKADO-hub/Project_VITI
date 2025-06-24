@@ -7,6 +7,7 @@ import MainLayout from './components/MainLayout';
 import CommandantPage from './components/CommandantPage';
 import StaffPage from './components/StaffPage';
 import AlertsMapPage from './components/AlertsMapPage'
+import Checkpoint from './components/Checkpoint';
 
 function App() {
   const [events, setEvents] = useState([]);
@@ -40,7 +41,10 @@ function App() {
           path="/dutyOfficer"
           element={<MainLayout events={events} />}
         />
-
+        <Route
+          path="/checkpointOfficer"
+          element={<Checkpoint />}
+        />
         <Route
           path="/alerts-map"
           element={<AlertsMapPage />}
